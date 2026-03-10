@@ -4,6 +4,7 @@ from typing import Any, Dict, Tuple
 
 
 class RequiredSettings(StrEnum):
+    """List of required settings"""
     WIDTH = "WIDTH"
     HEIGHT = "HEIGHT"
     ENTRY = "ENTRY"
@@ -13,6 +14,7 @@ class RequiredSettings(StrEnum):
 
 
 class ParsingError(Exception):
+    """Exception for parsing errors"""
     def __init__(self, msg: str):
         super().__init__(msg)
 
@@ -29,20 +31,33 @@ class MazeConfig:
 
 
 def process_values(settings: Dict[str, Any]) -> MazeConfig:
+    """Validate and store config values"""
     try:
         width: int = int(settings["WIDTH"])
         height: int = int(settings["HEIGHT"])
+        if width < 0 or height < 0:
+            raise ValueError
     except ValueError:
-        raise ParsingError("(ValueError): invalid values for width and height")
+        raise ParsingError(
+            "(ValueError): WIDTH and HEIGHT must be non-negative integers"
+        )
 
     def parse_coord(coord: str) -> Tuple[int, int]:
+        """Validate and parse coordinates"""
         parts = coord.split(",")
         if len(parts) != 2:
-            raise ParsingError("")
+            raise ParsingError(
+                "Coords must contain 2 values separated with a comma"
+            )
         try:
-            return int(parts[0]), int(parts[1])
+            coords = int(parts[0]), int(parts[1])
+            if coords[0] < 0 or coords[1] < 0:
+                raise ValueError
+            return coords
         except ValueError:
-            raise ParsingError("(ValueError): invalid values for coordinates")
+            raise ParsingError(
+                f"(ValueError): {parts} Coords must be non-negative integers"
+            )
 
     entry = parse_coord(settings["ENTRY"])
     m_exit = parse_coord(settings["EXIT"])
@@ -71,7 +86,7 @@ def parse(file: str) -> MazeConfig:
             if line.count("=") != 1:
                 raise ParsingError("Only one '=' needed for each line")
 
-            key, value = line.split("=", 1)
+            key, value = line.split("=")
             if key not in required:
                 raise ParsingError(f"Unknown key: '{key}'")
             settings[key] = value
