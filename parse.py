@@ -72,15 +72,15 @@ def process_values(settings: Dict[str, Any]) -> MazeConfig:
     return MazeConfig(width, height, entry, m_exit, output_file, perfect)
 
 
-def parse(file: str) -> MazeConfig:
-    """Parse file to generate maze"""
+def read_and_parse_file(file: str) -> MazeConfig:
+    """Attempts to read a file and parse its contents"""
     settings = {}
     required = [str(item) for item in list(RequiredSettings)]
     with open(file, "r") as f:
         for line in f:
             line = line.strip()
 
-            if not line:
+            if not line or line[0] == "#":
                 continue
 
             if line.count("=") != 1:
@@ -89,6 +89,8 @@ def parse(file: str) -> MazeConfig:
             key, value = line.split("=")
             if key not in required:
                 raise ParsingError(f"Unknown key: '{key}'")
+            if key in settings:
+                raise ParsingError(f"Repeated key: '{key}'")
             settings[key] = value
 
         missing = set(required).difference(settings.keys())
@@ -96,3 +98,13 @@ def parse(file: str) -> MazeConfig:
             raise ParsingError(f"Missing settings: {missing}")
 
     return process_values(settings)
+
+
+def parse(file: str) -> MazeConfig:
+    """Parse file to generate maze"""
+    try:
+        return read_and_parse_file(file)
+    except FileNotFoundError:
+        raise ParsingError(f"File {file} not found")
+    except PermissionError as e:
+        raise ParsingError(f"(PermissionError): {e}")
