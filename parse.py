@@ -1,6 +1,6 @@
-from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Dict, Tuple
+from utils import MazeConfig
 
 
 class RequiredSettings(StrEnum):
@@ -17,17 +17,6 @@ class ParsingError(Exception):
     """Exception for parsing errors"""
     def __init__(self, msg: str):
         super().__init__(msg)
-
-
-@dataclass
-class MazeConfig:
-    """Data class for storing the maze config"""
-    width: int
-    height: int
-    entry: tuple[int, int]
-    exit: tuple[int, int]
-    output_file: str
-    perfect: bool
 
 
 def process_values(settings: Dict[str, Any]) -> MazeConfig:
