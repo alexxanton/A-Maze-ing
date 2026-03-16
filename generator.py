@@ -2,7 +2,7 @@ from utils import MazeConfig
 from enum import IntEnum
 
 
-class Directions(IntEnum):
+class Direction(IntEnum):
     NORTH = 0b0001
     EAST = 0b0010
     SOUTH = 0b0100
@@ -13,7 +13,7 @@ class Maze:
     def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
-        self.grid = [[15] * self.width] * self.height
+        self.grid = [[15] * self.width for _ in range(self.height)]
 
 
 class MazeGenerator:
