@@ -55,7 +55,7 @@ class MazeGenerator:
             Direction.WEST: Direction.EAST,
             Direction.EAST: Direction.WEST,
         }
-        seed(0)
+        seed(4242)
         
         def add_frontier(x: int, y: int) -> None:
             if 0 <= x < width and 0 <= y < height and grid[y][x] == 0xF:
@@ -64,7 +64,6 @@ class MazeGenerator:
 
         def mark_cell(x: int, y: int) -> None:
             grid[y][x] |= IN
-            #grid[y][x] &= ~FRONTIER
             add_frontier(x + 1, y)
             add_frontier(x - 1, y)
             add_frontier(x, y + 1)
@@ -99,16 +98,14 @@ class MazeGenerator:
             index = randrange(len(frontiers))
             x, y = frontiers.pop(index)
             nbs = get_neighbors(x, y)
-            #for nx, ny in nbs:
-            #    add_frontier(nx, ny)
-            if not nbs:
-                continue
             nx, ny = choice(nbs)
 
-            # carve wall
+            # carve walls
             direction = get_direction(x, y, nx, ny)
-            grid[y][x] &= direction
-            grid[ny][nx] &= opposite[direction]
+            grid[y][x] &= ~direction
+            grid[ny][nx] &= ~opposite[direction]
+            grid[y][x] |= IN
+            grid[ny][nx] |= IN
 
             mark_cell(x, y)
 
