@@ -1,5 +1,5 @@
 run:
-	python3 -B a_maze_ing.py config.txt
+	@python3 -B src/a_maze_ing.py config.txt
 
 lint:
 	python3 -m flake8 .

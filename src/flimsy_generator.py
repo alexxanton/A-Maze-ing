@@ -1,7 +1,6 @@
 from utils import MazeConfig
 from enum import IntFlag, auto
 from random import randrange, choice, seed
-from time import sleep
 
 
 class Direction(IntFlag):
@@ -27,7 +26,8 @@ class MazeGenerator:
         entry: tuple[int, int],
         exit: tuple[int, int],
         output_file: str,
-        perfect: bool
+        perfect: bool,
+        draw
     ) -> None:
         self.width: int = width
         self.height: int = height
@@ -35,6 +35,7 @@ class MazeGenerator:
         self.exit: tuple[int, int] = exit
         self.output_file: str = output_file
         self.perfect: bool = perfect
+        self.draw = draw
 
     def create(self) -> Maze:
         maze = Maze(self.width, self.height)
@@ -106,9 +107,4 @@ class MazeGenerator:
             grid[ny][nx] |= get_opposite(dir_)
 
             mark(x, y, grid, frontier)
-            #m = Maze(0, 0)
-            #m.grid = grid
-            #from draw_maze import draw_maze
-            #print("\033[H", end="")
-            #draw_maze(m)
-            #sleep(0.1)
+            self.draw(grid)
