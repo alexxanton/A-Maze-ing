@@ -1,6 +1,6 @@
 from enum import StrEnum
 from typing import Any, Dict, Tuple
-from utils import MazeConfig
+from generator import MazeConfig
 
 
 class RequiredSettings(StrEnum):

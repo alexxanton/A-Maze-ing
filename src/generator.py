@@ -1,17 +1,30 @@
-from utils import MazeConfig
 from enum import IntFlag, auto
 from random import randrange, choice, seed
-from typing import List, Tuple
+from typing import List, Tuple, Callable, Optional
+from dataclasses import dataclass
+
+
+@dataclass
+class MazeConfig:
+    """Data class for storing the maze config"""
+    width: int
+    height: int
+    entry: tuple[int, int]
+    exit: tuple[int, int]
+    output_file: str
+    perfect: bool
 
 
 class Direction(IntFlag):
-    NORTH = auto() # 0001
-    EAST = auto() # 0010
-    SOUTH = auto() # 0100
-    WEST = auto() # 1000
+    """Enum for cardinal directions represented as bits"""
+    NORTH = auto()  # 0001
+    EAST = auto()  # 0010
+    SOUTH = auto()  # 0100
+    WEST = auto()  # 1000
 
 
 class Maze:
+    """Maze containing a grid and its attributes"""
     def __init__(self, width: int, height: int) -> None:
         self.width = width
         self.height = height
@@ -28,7 +41,7 @@ class MazeGenerator:
         exit: tuple[int, int],
         output_file: str,
         perfect: bool,
-        draw = None
+        draw: Optional[Callable[[List[List[int]]], None]] = None
     ) -> None:
         self.width: int = width
         self.height: int = height
@@ -38,14 +51,40 @@ class MazeGenerator:
         self.perfect: bool = perfect
         self.draw = draw
 
+    def _place_42(self, grid: List[List[int]]) -> None:
+        WIDTH = 7
+        HEIGHT = 5
+        BLOCK = 0b1001111
+
+        shape = [
+            (0, 0), (1, 0), (2, 0),
+            (2, 1), (2, 2),
+            (3, 2), (4, 2),
+
+            (0, 4), (0, 5), (0, 6),
+                            (1, 6),
+            (2, 4), (2, 5), (2, 6),
+            (3, 4),
+            (4, 4), (4, 5), (4, 6),
+        ]
+
+        start_x = self.width // 2 - WIDTH // 2
+        start_y = self.height // 2 - HEIGHT // 2
+        if self.height <= HEIGHT + 1 or self.width <= WIDTH + 1:
+            return
+        for y, x in shape:
+            grid[y + start_y][x + start_x] = BLOCK
+
     def create(self) -> Maze:
         maze = Maze(self.width, self.height)
+        self._place_42(maze.grid)
         self._prim(maze.grid)
         return maze
 
-    def _prim(self, grid) -> None:
+    def _prim(self, grid: List[List[int]]) -> None:
         IN = 0x10
         FRONTIER = 0x20
+        BLOCK = 0b1001111
         frontiers = []
         width = self.width
         height = self.height
@@ -55,10 +94,11 @@ class MazeGenerator:
             Direction.WEST: Direction.EAST,
             Direction.EAST: Direction.WEST,
         }
-        seed(4242)
         
         def add_frontier(x: int, y: int) -> None:
             if 0 <= x < width and 0 <= y < height and grid[y][x] == 0xF:
+                if grid[y][x] == BLOCK:
+                    return
                 grid[y][x] |= FRONTIER
                 frontiers.append((x, y))
 
@@ -83,6 +123,7 @@ class MazeGenerator:
             return nbs
 
         def get_direction(x: int, y: int, nx: int, ny: int) -> Direction:
+            """Get the direction between two cells"""
             if x > nx:
                 return Direction.WEST
             if x < nx:
@@ -93,7 +134,9 @@ class MazeGenerator:
                 return Direction.SOUTH
 
         mark_cell(*self.entry)
-        self.draw(grid)
+        if self.draw:
+            self.draw(grid)
+
         while frontiers:
             index = randrange(len(frontiers))
             x, y = frontiers.pop(index)
