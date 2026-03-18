@@ -27,6 +27,7 @@ def draw_maze(screen, grid) -> None:
                 screen.addstr("  ")
             else:
                 hex_num = hex(grid[i][j] & 0b00001111)[1:]
+                #hex_num = hex(grid[i][j])[1:]
                 screen.addstr(hex_num.replace("x", " "))
             screen.attroff(curses.color_pair(1))
         screen.addch("\n")
