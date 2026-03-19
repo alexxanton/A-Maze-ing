@@ -18,8 +18,11 @@ class Colors(IntEnum):
     BLUE_WALLS = auto()
     RED_WALLS = auto()
     GREEN_WALLS = auto()
-    FRONTIER = auto()
-    BLOCK = auto()
+    RED_FRONTIER = auto()
+    BLUE_FRONTIER = auto()
+    PURPLE_BLOCK = auto()
+    RED_BLOCK = auto()
+    _BLOCK = auto()
 
 
 def draw_maze(screen, grid, palette, wait: bool = True) -> None:
@@ -74,5 +77,5 @@ def draw_maze(screen, grid, palette, wait: bool = True) -> None:
     ch = screen.getch()
     if ch == ord("q"):
         exit()
-    elif ch == ord("\n"):
+    elif ch == ord("\n") or ch == ord(" "):
         screen.timeout(0)
