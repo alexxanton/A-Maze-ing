@@ -12,7 +12,7 @@ import curses
 #    #hex_num = hex(grid[i][j])[1:]
 #    screen.addstr(hex_num.replace("x", " "))
 
-def draw_maze(screen, grid) -> None:
+def draw_maze(screen, grid, wait: bool = True) -> None:
     IN = 0x10
     FRONTIER = 0x20
     screen.move(0, 0)
@@ -49,7 +49,8 @@ def draw_maze(screen, grid) -> None:
     screen.addch("\n")
     screen.refresh()
 
-    return
+    if not wait:
+        return
     ch = screen.getch()
     if ch == ord("q"):
         exit()

@@ -1,4 +1,4 @@
-from generator import MazeGenerator
+from generator import MazeGenerator, Maze
 from dataclasses import astuple
 from draw_maze import draw_maze
 from random import seed, randint
@@ -29,23 +29,26 @@ class InteractiveMenu:
         seed(gen_seed)
         maze_gen = MazeGenerator(*astuple(self.config))
         maze = maze_gen.create()
-        self.screen.timeout(0)
+        #self.screen.timeout(10)
         while True:
             seed(gen_seed)
-            draw_maze(self.screen, maze.grid)
+            draw_maze(self.screen, maze.grid, wait=False)
             self.screen.addstr(
                 "(r): Regenerate (t): Toggle Path (c): Change Color\n"
                 "(a): Play Animations (g): Play Game (q): Quit"
             )
             self.screen.refresh()
+            self.screen.timeout(-1)
             ch = self.screen.getch()
             if ch == ord("q"):
                 break
             elif ch == ord("r"):
+                #self.screen.timeout(0)
                 gen_seed = randint(0, 1_000_000)
-                #self.screen.timeout(100)
                 maze = maze_gen.create()
-                #maze = self.generate_maze(gen_seed)
+            elif ch == ord("a"):
+                self.screen.timeout(20)
+                maze = self.generate_maze(gen_seed)
             elif ch == ord("t"):
                 pass
             elif ch == ord("\n"):
@@ -53,11 +56,12 @@ class InteractiveMenu:
 
         curses.curs_set(1)
 
-    def generate_maze(self, gen_seed: int) -> None:
+    def generate_maze(self, gen_seed: int) -> Maze:
         def draw_wrapper(grid):
             return draw_maze(self.screen, grid)
 
         maze_gen = MazeGenerator(*astuple(self.config), draw_wrapper)
         maze = maze_gen.create()
-        self.screen.timeout(-1)
-        self.screen.addstr(str(gen_seed))
+        #self.screen.timeout(-1)
+        #self.screen.addstr(str(gen_seed))
+        return maze
