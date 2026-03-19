@@ -1,5 +1,6 @@
 from generator import Maze, Direction
 import curses
+from enum import IntEnum, auto
 
 
 #print(wall * (maze.width * 2 + 1))
@@ -12,41 +13,60 @@ import curses
 #    #hex_num = hex(grid[i][j])[1:]
 #    screen.addstr(hex_num.replace("x", " "))
 
-def draw_maze(screen, grid, wait: bool = True) -> None:
+
+class Colors(IntEnum):
+    BLUE_WALLS = auto()
+    RED_WALLS = auto()
+    GREEN_WALLS = auto()
+    FRONTIER = auto()
+    BLOCK = auto()
+
+
+def draw_maze(screen, grid, palette, wait: bool = True) -> None:
     IN = 0x10
     FRONTIER = 0x20
+    BLOCK = 0b1001111
+    NODE = "██"
+    WALL = "██"
+    #WALL = "▓▓"
+    EMPTY = "  "
+
     screen.move(0, 0)
     screen.scrollok(True)
+    walls, fronts, blocks = palette
+    screen.attron(curses.color_pair(walls))
     for i in range(len(grid)):
         for j in range(len(grid[i])):
             cell = grid[i][j]
-            screen.addch("+")
+            screen.addstr(NODE)
             if cell & Direction.NORTH:
-                screen.addstr("--")
+                screen.addstr(WALL)
             else:
                 screen.addstr("  ")
-        screen.addch("+")
+        screen.addstr(NODE)
         screen.addch("\n")
         for j in range(len(grid[i])):
             cell = grid[i][j]
-            screen.addstr("|" if cell & Direction.WEST else " ")
+            screen.addstr(WALL if cell & Direction.WEST else EMPTY)
             if cell & FRONTIER and not cell & IN:
-                screen.attron(curses.color_pair(1))
-            if cell == 79:
-                screen.attron(curses.color_pair(2))
+                screen.attron(curses.color_pair(fronts))
+            if cell == BLOCK:
+                screen.attron(curses.color_pair(blocks))
             screen.addstr("  ")
-            screen.attroff(curses.color_pair(1))
-            screen.attroff(curses.color_pair(2))
-        screen.addstr("|" if cell & Direction.EAST else " ")
+            screen.attroff(curses.color_pair(fronts))
+            screen.attroff(curses.color_pair(blocks))
+            screen.attron(curses.color_pair(walls))
+        screen.addstr(WALL if cell & Direction.EAST else EMPTY)
         screen.addch("\n")
 
     for j in range(len(grid[i])):
         cell = grid[i][j]
-        screen.addch("+")
+        screen.addstr(WALL)
         if cell & Direction.SOUTH:
-            screen.addstr("--")
-    screen.addch("+")
-    screen.addch("\n")
+            screen.addstr(WALL)
+    screen.addstr(WALL)
+    screen.addstr("\n\n")
+    screen.attroff(curses.color_pair(3))
     screen.refresh()
 
     if not wait:
