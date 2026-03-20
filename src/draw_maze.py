@@ -21,14 +21,14 @@ class Colors(IntEnum):
     RED_FRONTIER = auto()
     BLUE_FRONTIER = auto()
     PURPLE_BLOCK = auto()
-    RED_BLOCK = auto()
+    YELLOW_BLOCK = auto()
     _BLOCK = auto()
 
 
 def draw_maze(screen, grid, palette, wait: bool = True) -> None:
     IN = 0x10
     FRONTIER = 0x20
-    BLOCK = 0b1001111
+    BLOCK = 0x40
     NODE = "██"
     WALL = "██"
     #WALL = "▓▓"
@@ -53,7 +53,7 @@ def draw_maze(screen, grid, palette, wait: bool = True) -> None:
             screen.addstr(WALL if cell & Direction.WEST else EMPTY)
             if cell & FRONTIER and not cell & IN:
                 screen.attron(curses.color_pair(fronts))
-            if cell == BLOCK:
+            if cell & BLOCK:
                 screen.attron(curses.color_pair(blocks))
             screen.addstr("  ")
             screen.attroff(curses.color_pair(fronts))

@@ -41,7 +41,6 @@ class MazeGenerator:
         exit: tuple[int, int],
         output_file: str,
         perfect: bool,
-        draw: Optional[Callable[[List[List[int]]], None]] = None
     ) -> None:
         self.width: int = width
         self.height: int = height
@@ -49,33 +48,38 @@ class MazeGenerator:
         self.exit: tuple[int, int] = exit
         self.output_file: str = output_file
         self.perfect: bool = perfect
-        self.draw = draw
+        self.draw_method: Optional[Callable[[List[List[int]]], None]] = None
 
     def _place_42(self, grid: List[List[int]]) -> None:
         WIDTH = 7
         HEIGHT = 5
-        BLOCK = 0b1001111
+        BLOCK = 0x40
 
         shape = [
-            (0, 0), (1, 0), (2, 0),
-            (2, 1), (2, 2),
-            (3, 2), (4, 2),
+            (0, 0), (0, 1), (0, 2),
+            (1, 2), (2, 2),
+            (2, 3), (2, 4),
 
-            (0, 4), (0, 5), (0, 6),
-                            (1, 6),
-            (2, 4), (2, 5), (2, 6),
-            (3, 4),
-            (4, 4), (4, 5), (4, 6),
+            (4, 0), (5, 0), (6, 0),
+                            (6, 1),
+            (4, 2), (5, 2), (6, 2),
+            (4, 3),
+            (4, 4), (5, 4), (6, 4)
         ]
 
         start_x = self.width // 2 - WIDTH // 2
         start_y = self.height // 2 - HEIGHT // 2
         if self.height <= HEIGHT + 1 or self.width <= WIDTH + 1:
             return
-        for y, x in shape:
-            grid[y + start_y][x + start_x] = BLOCK
+        for x, y in shape:
+            block_pos = (x + start_x, y + start_y)
+            if self.entry == block_pos or self.exit == block_pos:
+                raise ValueError(
+                    "Cant't place an entry or exit on the '42' blocks"
+                )
+            grid[y + start_y][x + start_x] |= BLOCK
 
-    def create(self) -> Maze:
+    def create(self) -> Maze | None:
         maze = Maze(self.width, self.height)
         self._place_42(maze.grid)
         self._prim(maze.grid)
@@ -84,7 +88,7 @@ class MazeGenerator:
     def _prim(self, grid: List[List[int]]) -> None:
         IN = 0x10
         FRONTIER = 0x20
-        BLOCK = 0b1001111
+        BLOCK = 0x40
         frontiers = []
         width = self.width
         height = self.height
@@ -97,7 +101,7 @@ class MazeGenerator:
         
         def add_frontier(x: int, y: int) -> None:
             if 0 <= x < width and 0 <= y < height and grid[y][x] == 0xF:
-                if grid[y][x] == BLOCK:
+                if grid[y][x] & BLOCK:
                     return
                 grid[y][x] |= FRONTIER
                 frontiers.append((x, y))
@@ -134,8 +138,8 @@ class MazeGenerator:
                 return Direction.SOUTH
 
         mark_cell(*self.entry)
-        if self.draw:
-            self.draw(grid)
+        if self.draw_method:
+            self.draw_method(grid)
 
         while frontiers:
             index = randrange(len(frontiers))
@@ -152,5 +156,5 @@ class MazeGenerator:
 
             mark_cell(x, y)
 
-            if self.draw:
-                self.draw(grid)
+            if self.draw_method:
+                self.draw_method(grid)
