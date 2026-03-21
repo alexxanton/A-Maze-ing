@@ -8,9 +8,27 @@ from utils import generate_name
 
 
 class InteractiveMenu:
-    BLUE_MAZE = (Colors.BLUE_WALLS, Colors.RED_FRONTIER, Colors.PURPLE_BLOCK)
-    RED_MAZE = (Colors.RED_WALLS, Colors.BLUE_FRONTIER, Colors._BLOCK)
-    GREEN_MAZE = (Colors.GREEN_WALLS, Colors.RED_FRONTIER, Colors.YELLOW_BLOCK)
+    BLUE_MAZE = (
+        Colors.BLUE_WALLS,
+        Colors.RED_FRONTIER,
+        Colors.PURPLE_BLOCK,
+        Colors.BLUE_ENTRY,
+        Colors.BLUE_EXIT
+    )
+    RED_MAZE = (
+        Colors.RED_WALLS,
+        Colors.BLUE_FRONTIER,
+        Colors.BLACK_BLOCK,
+        Colors.RED_ENTRY,
+        Colors.RED_EXIT
+    )
+    GREEN_MAZE = (
+        Colors.GREEN_WALLS,
+        Colors.RED_FRONTIER,
+        Colors.YELLOW_BLOCK,
+        Colors.GREEN_ENTRY,
+        Colors.GREEN_EXIT
+    )
 
     def __init__(self, config) -> None:
         self.config = config
@@ -34,21 +52,35 @@ class InteractiveMenu:
             curses.init_pair(Colors.PURPLE_BLOCK, 0, 13)
             curses.init_pair(Colors.YELLOW_BLOCK, 0, 3)
 
+            curses.init_pair(Colors.BLUE_ENTRY, 5, 6)
+            curses.init_pair(Colors.BLUE_EXIT, 1, 6)
+            curses.init_pair(Colors.RED_ENTRY, 5, 9)
+            curses.init_pair(Colors.RED_EXIT, 0, 9)
+            curses.init_pair(Colors.GREEN_ENTRY, 5, 10)
+            curses.init_pair(Colors.GREEN_EXIT, 1, 10)
+
 
     def start(self):
         gen_seed = randint(0, 1_000_000)
         maze = self.generate_maze(gen_seed)
         while True:
             seed(gen_seed)
-            draw_maze(self.screen, maze.grid, self.variations[self.color], wait=False)
+            draw_maze(
+                self.screen,
+                maze.grid,
+                self.variations[self.color],
+                maze.entities,
+                wait=False
+            )
             self.screen.addstr("Seed: " + "{:<10d}".format(gen_seed))
             self.screen.addstr(generate_name(str(gen_seed)))
             self.screen.addch("\n")
             self.screen.addstr(
-                "(r): Regenerate (t): Toggle Path (c): Change Color\n"
-                "(a): Play Animations (g): Play Game (q): Quit"
+                "(r): Regenerate \t\t(t): Toggle Path\t\t(c): Change Color\n"
+                "(a): Play Animations\t\t(g): Play Game\t\t\t(q): Quit"
             )
             self.screen.refresh()
+            self.screen.timeout(-1)
             ch = self.screen.getch()
             if ch <= ord("Z"):
                 ch += ord("a") - ord("A")

@@ -10,7 +10,7 @@ class MazeConfig:
     width: int
     height: int
     entry: tuple[int, int]
-    exit: tuple[int, int]
+    m_exit: tuple[int, int]
     output_file: str
     perfect: bool
 
@@ -23,12 +23,23 @@ class Direction(IntFlag):
     WEST = auto()  # 1000
 
 
+class MazeEntity:
+    def __init__(self, name: str, pos: Tuple[int, int]) -> None:
+        self.name = name
+        self.pos: Tuple[int, int] = pos
+
+
 class Maze:
     """Maze containing a grid and its attributes"""
     def __init__(self, width: int, height: int) -> None:
         self.width = width
         self.height = height
         self.grid = [[15] * self.width for _ in range(self.height)]
+        self.entities: List[MazeEntity] = []
+
+    def add_entity(self, entity: MazeEntity) -> None:
+        if isinstance(entity, MazeEntity):
+            self.entities.append(entity)
 
 
 class MazeGenerator:
@@ -38,14 +49,14 @@ class MazeGenerator:
         width: int,
         height: int,
         entry: tuple[int, int],
-        exit: tuple[int, int],
+        m_exit: tuple[int, int],
         output_file: str,
         perfect: bool,
     ) -> None:
         self.width: int = width
         self.height: int = height
         self.entry: tuple[int, int] = entry
-        self.exit: tuple[int, int] = exit
+        self.m_exit: tuple[int, int] = m_exit
         self.output_file: str = output_file
         self.perfect: bool = perfect
         self.draw_method: Optional[Callable[[List[List[int]]], None]] = None
@@ -73,7 +84,7 @@ class MazeGenerator:
             return
         for x, y in shape:
             block_pos = (x + start_x, y + start_y)
-            if self.entry == block_pos or self.exit == block_pos:
+            if self.entry == block_pos or self.m_exit == block_pos:
                 raise ValueError(
                     "Cant't place an entry or exit on the '42' blocks"
                 )
@@ -83,6 +94,8 @@ class MazeGenerator:
         maze = Maze(self.width, self.height)
         self._place_42(maze.grid)
         self._prim(maze.grid)
+        maze.add_entity(MazeEntity("entry", self.entry))
+        maze.add_entity(MazeEntity("exit", self.m_exit))
         return maze
 
     def _prim(self, grid: List[List[int]]) -> None:
@@ -151,7 +164,7 @@ class MazeGenerator:
             direction = get_direction(x, y, nx, ny)
             grid[y][x] &= ~direction
             grid[ny][nx] &= ~opposite[direction]
-            grid[y][x] |= IN
+            #grid[y][x] |= IN
             grid[ny][nx] |= IN
 
             mark_cell(x, y)
