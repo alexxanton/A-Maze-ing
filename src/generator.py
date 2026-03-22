@@ -21,6 +21,7 @@ class Direction(IntFlag):
     EAST = auto()  # 0010
     SOUTH = auto()  # 0100
     WEST = auto()  # 1000
+    NONE = 0  # used for type checkers
 
 
 class MazeEntity:
@@ -111,7 +112,7 @@ class MazeGenerator:
             Direction.WEST: Direction.EAST,
             Direction.EAST: Direction.WEST,
         }
-        
+
         def add_frontier(x: int, y: int) -> None:
             if 0 <= x < width and 0 <= y < height and grid[y][x] == 0xF:
                 if grid[y][x] & BLOCK:
@@ -149,6 +150,7 @@ class MazeGenerator:
                 return Direction.NORTH
             if y < ny:
                 return Direction.SOUTH
+            return Direction.NONE
 
         mark_cell(*self.entry)
         if self.draw_method:

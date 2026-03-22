@@ -11,7 +11,7 @@ def generate_name(name_seed: str) -> str:
              "5": "ra'", "6": "thut", "7": "nekh'", "8": "maat", "9": "sekh'"}
 
     alt = {"0": "sen", "1": "tek", "2": "rah", "3": "ket", "4": "mon",
-                  "5": "khe'", "6": "bak", "7": "ren", "8": "ab'", "9": "neb"}
+           "5": "khe'", "6": "bak", "7": "ren", "8": "ab'", "9": "neb"}
 
     middle = {"0": "ukt", "1": "to", "2": "qi", "3": "sa", "4": "yok'",
               "5": "go", "6": "khur", "7": "mat'", "8": "ha", "9": "kit"}

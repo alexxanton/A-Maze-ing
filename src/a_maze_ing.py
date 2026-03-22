@@ -4,7 +4,7 @@ import curses
 from interactive_menu import InteractiveMenu
 
 
-def main(stdscr=None) -> None:
+def main(stdscr: curses.window) -> None:
     if len(sys.argv) < 2:
         print("No config file provided!")
         return
@@ -14,7 +14,7 @@ def main(stdscr=None) -> None:
         print("Error while parsing file:", e)
         return
 
-    menu = InteractiveMenu(config)
+    menu = InteractiveMenu(config, stdscr)
     menu.init()
     menu.start()
 
