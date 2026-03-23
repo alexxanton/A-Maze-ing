@@ -4,7 +4,7 @@ from random import seed, randint
 import curses
 from utils import generate_name
 from renderer import MazeRenderer
-from typing import List, Callable
+from typing import List
 
 
 class InteractiveMenu:
@@ -33,10 +33,14 @@ class InteractiveMenu:
                 wait=False
             )
             self.screen.addstr("Seed: " + "{:<10d}".format(gen_seed))
-            self.screen.addstr(generate_name(str(gen_seed)))
-            self.screen.addch("\n")
             self.screen.addstr(
-                "(r): Regenerate \t\t(t): Toggle Path\t\t(c): Change Color\n"
+                generate_name(str(gen_seed + maze.width + maze.height))
+            )
+            if not maze.logo:
+                self.screen.addstr("Warning: 42 logo doesn't fit")
+            self.screen.addstr("\n" + ("─" * 81) + "\n")
+            self.screen.addstr(
+                "(r): Regenerate\t\t\t(t): Toggle Path\t\t(c): Change Color\n"
                 "(a): Play Animations\t\t(g): Play Game\t\t\t(q): Quit"
             )
             self.screen.refresh()
@@ -64,8 +68,8 @@ class InteractiveMenu:
         curses.curs_set(1)
 
     def generate_maze(self, gen_seed: int, draw: bool = False) -> Maze:
-        def draw_wrapper(grid) -> Callable[[List[List[int]], int], None]:
-            return self.renderer.draw_maze(grid, self.color)
+        def draw_wrapper(grid: List[List[int]]) -> None:
+            self.renderer.draw_maze(grid, self.color)
 
         if draw:
             self.maze_gen.draw_method = draw_wrapper
@@ -76,5 +80,5 @@ class InteractiveMenu:
             seed(gen_seed)
             maze = self.maze_gen.create()
         except ValueError as e:
-            exit(e)
+            exit(f"Error: {e}")
         return maze

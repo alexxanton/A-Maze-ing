@@ -1,18 +1,7 @@
-from generator import Maze, Direction, MazeEntity
+from generator import Direction, MazeEntity
 import curses
 from enum import IntEnum, auto
 from typing import List, Optional, Tuple
-
-
-#print(wall * (maze.width * 2 + 1))
-#print(hex(maze.grid[i][j])[2:], end="")
-
-#if 1:
-#    screen.addstr("  ")
-#else:
-#    hex_num = hex(grid[i][j] & 0b00001111)[1:]
-#    #hex_num = hex(grid[i][j])[1:]
-#    screen.addstr(hex_num.replace("x", " "))
 
 
 class Colors(IntEnum):
@@ -86,11 +75,12 @@ class MazeRenderer:
         curses.init_pair(Colors.BLUE_FRONTIER, 0, 6)
         curses.init_pair(Colors.PURPLE_BLOCK, 0, 13)
         curses.init_pair(Colors.YELLOW_BLOCK, 0, 3)
+        curses.init_pair(Colors.BLACK_BLOCK, 15, 0)
 
         curses.init_pair(Colors.BLUE_ENTRY, 5, 6)
         curses.init_pair(Colors.BLUE_EXIT, 1, 6)
         curses.init_pair(Colors.RED_ENTRY, 5, 9)
-        curses.init_pair(Colors.RED_EXIT, 0, 9)
+        curses.init_pair(Colors.RED_EXIT, 2, 9)
         curses.init_pair(Colors.GREEN_ENTRY, 5, 10)
         curses.init_pair(Colors.GREEN_EXIT, 1, 10)
 

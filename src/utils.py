@@ -1,4 +1,4 @@
-from random import shuffle
+from random import shuffle, choice
 
 
 def generate_name(name_seed: str) -> str:
@@ -8,20 +8,22 @@ def generate_name(name_seed: str) -> str:
     last = ""
     name = ""
     start = {"0": "rakh'", "1": "ar'", "2": "set", "3": "kha'", "4": "amon",
-             "5": "ra'", "6": "thut", "7": "nekh'", "8": "maat", "9": "sekh'"}
+             "5": "ra'", "6": "thut", "7": "nekh'", "8": "ab'", "9": "sekh'"}
+
+    middle = {"0": "ukt", "1": "to", "2": "qaal", "3": "sav", "4": "yok",
+              "5": "gor", "6": "khur", "7": "maat", "8": "hav", "9": "kit"}
 
     alt = {"0": "sen", "1": "tek", "2": "rah", "3": "ket", "4": "mon",
-           "5": "khe'", "6": "bak", "7": "ren", "8": "ab'", "9": "neb"}
+           "5": "khe", "6": "bak", "7": "ren", "8": "al", "9": "neb"}
 
-    middle = {"0": "ukt", "1": "to", "2": "qi", "3": "sa", "4": "yok'",
-              "5": "go", "6": "khur", "7": "mat'", "8": "ha", "9": "kit"}
-
-    end = {"0": "esh", "1": "akh", "2": "qet", "3": "qut", "4": "eshk",
-           "5": "arr", "6": "qem", "7": "an", "8": "'ir", "9": "oth"}
+    end = {"0": "'esh", "1": "akh", "2": "'eth", "3": "qut", "4": "eshk",
+           "5": "ark", "6": "qem", "7": "an", "8": "'ir", "9": "'oth"}
 
     for i, ch in enumerate(name_seed):
         if i == 0:
-            name += start[ch]
+            options = [start, alt]
+            option = choice(options)
+            name += option[ch]
         elif i == len(name_seed) - 1:
             name += end[ch]
         else:

@@ -37,6 +37,7 @@ class Maze:
         self.height = height
         self.grid = [[15] * self.width for _ in range(self.height)]
         self.entities: List[MazeEntity] = []
+        self.logo: bool = True
 
     def add_entity(self, entity: MazeEntity) -> None:
         if isinstance(entity, MazeEntity):
@@ -62,7 +63,7 @@ class MazeGenerator:
         self.perfect: bool = perfect
         self.draw_method: Optional[Callable[[List[List[int]]], None]] = None
 
-    def _place_42(self, grid: List[List[int]]) -> None:
+    def _place_42(self, grid: List[List[int]]) -> bool:
         WIDTH = 7
         HEIGHT = 5
         BLOCK = 0x40
@@ -82,7 +83,7 @@ class MazeGenerator:
         start_x = self.width // 2 - WIDTH // 2
         start_y = self.height // 2 - HEIGHT // 2
         if self.height <= HEIGHT + 1 or self.width <= WIDTH + 1:
-            return
+            return False
         for x, y in shape:
             block_pos = (x + start_x, y + start_y)
             if self.entry == block_pos or self.m_exit == block_pos:
@@ -90,10 +91,11 @@ class MazeGenerator:
                     "Cant't place an entry or exit on the '42' blocks"
                 )
             grid[y + start_y][x + start_x] |= BLOCK
+        return True
 
-    def create(self) -> Maze | None:
+    def create(self) -> Maze:
         maze = Maze(self.width, self.height)
-        self._place_42(maze.grid)
+        maze.logo = self._place_42(maze.grid)
         self._prim(maze.grid)
         maze.add_entity(MazeEntity("entry", self.entry))
         maze.add_entity(MazeEntity("exit", self.m_exit))
