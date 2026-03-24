@@ -23,11 +23,14 @@ class Colors(IntEnum):
     YELLOW_BLOCK = auto()
     BLACK_BLOCK = auto()
 
+    SOLVE = auto()
+
 
 class CellFlags(IntEnum):
     IN = 0x10
     FRONTIER = 0x20
     BLOCK = 0x40
+    VISITED = 0x80
 
 
 class MazeRenderer:
@@ -84,15 +87,19 @@ class MazeRenderer:
         curses.init_pair(Colors.GREEN_ENTRY, 5, 10)
         curses.init_pair(Colors.GREEN_EXIT, 1, 10)
 
+        curses.init_pair(Colors.SOLVE, 4, 10)
+
     def _draw_entities(self, entities: List[MazeEntity]) -> None:
         walls, fronts, blocks, entry, m_exit = self.palette
 
         for entity in entities:
             og_x, og_y = self.screen.getyx()
             x, y = entity.pos
-            x = x * 2 + (2 if x % 2 == 0 else 4)
+            x = x * 4 + 2
             y = y * 2 + 1
-            #screen.addstr(y, x, ".." + str(x))
+            if x > self.screen.getmaxyx()[1]:
+                self.screen.move(og_y, og_x)
+                continue
             pair = 0
             if entity.name == "entry":
                 pair = entry
@@ -103,13 +110,24 @@ class MazeRenderer:
 
     def _draw_top_line(self, row: List[int]) -> None:
         walls, fronts, blocks, entry, m_exit = self.palette
+
+        def enable_color() -> None:
+            if cell & CellFlags.VISITED:
+                self.screen.attron(curses.color_pair(Colors.SOLVE))
+
+        def disable_color() -> None:
+            self.screen.attroff(curses.color_pair(Colors.SOLVE))
+            self.screen.attron(curses.color_pair(walls))
+
         for i in range(len(row)):
             cell = row[i]
             self.screen.addstr(self.NODE)
             if cell & Direction.NORTH:
                 self.screen.addstr(self.WALL)
             else:
-                self.screen.addstr("  ")
+                enable_color()
+                self.screen.addstr(self.EMPTY)
+                disable_color()
         self.screen.addstr(self.NODE)
         self.screen.addch("\n")
 
@@ -117,13 +135,12 @@ class MazeRenderer:
         walls, fronts, blocks, entry, m_exit = self.palette
 
         def enable_colors(cell: int) -> None:
-            self.screen.addstr(
-                self.WALL if cell & Direction.WEST else self.EMPTY
-            )
             if cell & CellFlags.FRONTIER and not cell & CellFlags.IN:
                 self.screen.attron(curses.color_pair(fronts))
             if cell & CellFlags.BLOCK:
                 self.screen.attron(curses.color_pair(blocks))
+            if cell & CellFlags.VISITED:
+                self.screen.attron(curses.color_pair(Colors.SOLVE))
 
         def disable_colors() -> None:
             self.screen.attroff(curses.color_pair(fronts))
@@ -131,9 +148,14 @@ class MazeRenderer:
             self.screen.attron(curses.color_pair(walls))
 
         for i in range(len(row)):
+            qty = 1
             cell = row[i]
+            if cell & Direction.WEST:
+                self.screen.addstr(self.WALL)
+            else:
+                qty = 2
             enable_colors(cell)
-            self.screen.addstr("  ")
+            self.screen.addstr(self.EMPTY * qty)
             disable_colors()
 
         self.screen.addstr(self.WALL if cell & Direction.EAST else self.EMPTY)

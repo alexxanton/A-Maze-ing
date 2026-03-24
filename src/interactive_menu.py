@@ -5,6 +5,7 @@ import curses
 from utils import generate_name
 from renderer import MazeRenderer
 from typing import List
+from solver import solve_maze
 
 
 class InteractiveMenu:
@@ -45,6 +46,7 @@ class InteractiveMenu:
             )
             self.screen.refresh()
             self.screen.timeout(-1)
+
             ch = self.screen.getch()
             if ch <= ord("Z"):
                 ch += ord("a") - ord("A")
@@ -56,6 +58,11 @@ class InteractiveMenu:
             elif ch == ord("a"):
                 self.screen.timeout(20)
                 maze = self.generate_maze(gen_seed, draw=True)
+                self.screen.timeout(10)
+                def wrap(grid):
+                    self.renderer.draw_maze(
+                        grid, self.color, maze.entities, wait=True)
+                solve_maze(maze, wrap, self.screen)
             elif ch == ord("c"):
                 self.color += 1
                 if self.color > 2:
