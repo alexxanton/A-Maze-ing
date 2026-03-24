@@ -56,8 +56,8 @@ class InteractiveMenu:
                 gen_seed = randint(0, 1_000_000)
                 maze = self.generate_maze(gen_seed)
             elif ch == ord("a"):
-                self.screen.timeout(20)
-                maze = self.generate_maze(gen_seed, draw=True)
+                #self.screen.timeout(20)
+                #maze = self.generate_maze(gen_seed, draw=True)
                 self.screen.timeout(10)
                 def wrap(grid):
                     self.renderer.draw_maze(
