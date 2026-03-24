@@ -9,13 +9,13 @@ class Colors(IntEnum):
     RED_WALLS = auto()
     GREEN_WALLS = auto()
 
-    BLUE_ENTRY = auto()
-    RED_ENTRY = auto()
-    GREEN_ENTRY = auto()
+    BLUE_MAZE_ENTRY = auto()
+    RED_MAZE_ENTRY = auto()
+    GREEN_MAZE_ENTRY = auto()
 
-    BLUE_EXIT = auto()
-    RED_EXIT = auto()
-    GREEN_EXIT = auto()
+    BLUE_MAZE_EXIT = auto()
+    RED_MAZE_EXIT = auto()
+    GREEN_MAZE_EXIT = auto()
 
     RED_FRONTIER = auto()
     BLUE_FRONTIER = auto()
@@ -23,7 +23,8 @@ class Colors(IntEnum):
     YELLOW_BLOCK = auto()
     BLACK_BLOCK = auto()
 
-    SOLVE = auto()
+    GREEN_SOLVE = auto()
+    BLUE_SOLVE = auto()
 
 
 class CellFlags(IntEnum):
@@ -43,22 +44,25 @@ class MazeRenderer:
         Colors.BLUE_WALLS,
         Colors.RED_FRONTIER,
         Colors.PURPLE_BLOCK,
-        Colors.BLUE_ENTRY,
-        Colors.BLUE_EXIT
+        Colors.BLUE_MAZE_ENTRY,
+        Colors.BLUE_MAZE_EXIT,
+        Colors.GREEN_SOLVE
     )
     RED_MAZE = (
         Colors.RED_WALLS,
         Colors.BLUE_FRONTIER,
         Colors.BLACK_BLOCK,
-        Colors.RED_ENTRY,
-        Colors.RED_EXIT
+        Colors.RED_MAZE_ENTRY,
+        Colors.RED_MAZE_EXIT,
+        Colors.GREEN_SOLVE
     )
     GREEN_MAZE = (
         Colors.GREEN_WALLS,
         Colors.RED_FRONTIER,
         Colors.YELLOW_BLOCK,
-        Colors.GREEN_ENTRY,
-        Colors.GREEN_EXIT
+        Colors.GREEN_MAZE_ENTRY,
+        Colors.GREEN_MAZE_EXIT,
+        Colors.BLUE_SOLVE
     )
     variations = [BLUE_MAZE, RED_MAZE, GREEN_MAZE]
 
@@ -80,17 +84,18 @@ class MazeRenderer:
         curses.init_pair(Colors.YELLOW_BLOCK, 0, 3)
         curses.init_pair(Colors.BLACK_BLOCK, 15, 0)
 
-        curses.init_pair(Colors.BLUE_ENTRY, 5, 6)
-        curses.init_pair(Colors.BLUE_EXIT, 1, 6)
-        curses.init_pair(Colors.RED_ENTRY, 5, 9)
-        curses.init_pair(Colors.RED_EXIT, 2, 9)
-        curses.init_pair(Colors.GREEN_ENTRY, 5, 10)
-        curses.init_pair(Colors.GREEN_EXIT, 1, 10)
+        curses.init_pair(Colors.BLUE_MAZE_ENTRY, 5, 6)
+        curses.init_pair(Colors.BLUE_MAZE_EXIT, 1, 6)
+        curses.init_pair(Colors.RED_MAZE_ENTRY, 5, 9)
+        curses.init_pair(Colors.RED_MAZE_EXIT, 2, 9)
+        curses.init_pair(Colors.GREEN_MAZE_ENTRY, 5, 10)
+        curses.init_pair(Colors.GREEN_MAZE_EXIT, 1, 10)
 
-        curses.init_pair(Colors.SOLVE, 4, 10)
+        curses.init_pair(Colors.GREEN_SOLVE, 0, 10)
+        curses.init_pair(Colors.BLUE_SOLVE, 0, 6)
 
     def _draw_entities(self, entities: List[MazeEntity]) -> None:
-        walls, fronts, blocks, entry, m_exit = self.palette
+        walls, fronts, blocks, entry, m_exit, solve = self.palette
 
         for entity in entities:
             og_x, og_y = self.screen.getyx()
@@ -109,14 +114,14 @@ class MazeRenderer:
             self.screen.move(og_y, og_x)
 
     def _draw_top_line(self, row: List[int]) -> None:
-        walls, fronts, blocks, entry, m_exit = self.palette
+        walls, fronts, blocks, entry, m_exit, solve = self.palette
 
         def enable_color() -> None:
             if cell & CellFlags.VISITED:
-                self.screen.attron(curses.color_pair(Colors.SOLVE))
+                self.screen.attron(curses.color_pair(solve))
 
         def disable_color() -> None:
-            self.screen.attroff(curses.color_pair(Colors.SOLVE))
+            self.screen.attroff(curses.color_pair(solve))
             self.screen.attron(curses.color_pair(walls))
 
         for i in range(len(row)):
@@ -132,7 +137,7 @@ class MazeRenderer:
         self.screen.addch("\n")
 
     def _draw_row(self, row: List[int]) -> None:
-        walls, fronts, blocks, entry, m_exit = self.palette
+        walls, fronts, blocks, entry, m_exit, solve = self.palette
 
         def enable_colors(cell: int) -> None:
             if cell & CellFlags.FRONTIER and not cell & CellFlags.IN:
@@ -140,7 +145,7 @@ class MazeRenderer:
             if cell & CellFlags.BLOCK:
                 self.screen.attron(curses.color_pair(blocks))
             if cell & CellFlags.VISITED:
-                self.screen.attron(curses.color_pair(Colors.SOLVE))
+                self.screen.attron(curses.color_pair(solve))
 
         def disable_colors() -> None:
             self.screen.attroff(curses.color_pair(fronts))
@@ -176,7 +181,7 @@ class MazeRenderer:
         wait: bool = True
     ) -> None:
         self.palette = self.variations[color]
-        walls, fronts, blocks, entry, m_exit = self.palette
+        walls, fronts, blocks, entry, m_exit, solve = self.palette
 
         self.screen.move(0, 0)
         self.screen.scrollok(True)
