@@ -9,5 +9,5 @@
 ## Resources
 
 * [Maze Generation: Prim's Algorithm – Jamis Buck Blog](https://weblog.jamisbuck.org/2011/1/10/maze-generation-prim-s-algorithm)
+* [Maze Solver: BFS - Medium](https://medium.com/@luthfisauqi17_68455/artificial-intelligence-search-problem-solve-maze-using-breadth-first-search-bfs-algorithm-255139c6e1a3)
 * [Maze Generation – Rosetta Code](https://rosettacode.org/wiki/Maze_generation)
-* [sing Python to Create and Solve Mazes – Medium](https://medium.com/@msgold/using-python-to-create-and-solve-mazes-672285723c96)
