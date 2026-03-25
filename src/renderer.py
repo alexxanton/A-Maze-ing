@@ -207,3 +207,16 @@ class MazeRenderer:
             exit()
         elif ch == ord("\n") or ch == ord(" "):
             self.screen.timeout(0)
+
+    def draw_path(self, solution: List[Tuple[int, int]]) -> None:
+        self.screen.attron(curses.color_pair(Colors.PURPLE_BLOCK))
+        for (x, y), (x2, y2) in zip(solution, solution[1:]):
+            x_pos = x * 4 + 2
+            y_pos = y * 2 + 1
+            x_dir = x2 - x  # -1, 0 or 1
+            y_dir = y2 - y  # -1, 0 or 1
+
+            self.screen.addstr(y_pos, x_pos, self.EMPTY)
+            self.screen.addstr(y_pos + y_dir, x_pos + (x_dir * 2), self.EMPTY)
+
+        self.screen.attroff(curses.color_pair(Colors.PURPLE_BLOCK))

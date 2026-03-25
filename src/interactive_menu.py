@@ -62,7 +62,10 @@ class InteractiveMenu:
                 def wrap(grid):
                     self.renderer.draw_maze(
                         grid, self.color, maze.entities, wait=True)
-                solve_maze(maze, wrap, self.screen)
+                solution = solve_maze(maze, wrap, self.screen)
+                self.renderer.draw_path(solution)
+                self.screen.timeout(-1)
+                self.screen.getch()
             elif ch == ord("c"):
                 self.color += 1
                 if self.color > 2:
