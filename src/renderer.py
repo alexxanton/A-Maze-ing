@@ -97,12 +97,13 @@ class MazeRenderer:
     def _draw_entities(self, entities: List[MazeEntity]) -> None:
         walls, fronts, blocks, entry, m_exit, solve = self.palette
 
+        screen_height, screen_width = self.screen.getmaxyx()
         for entity in entities:
             og_x, og_y = self.screen.getyx()
             x, y = entity.pos
             x = x * 4 + 2
             y = y * 2 + 1
-            if x > self.screen.getmaxyx()[1]:
+            if x >= screen_width or y >= screen_height:
                 self.screen.move(og_y, og_x)
                 continue
             pair = 0
@@ -112,6 +113,7 @@ class MazeRenderer:
                 pair = m_exit
             self.screen.addstr(y, x, self.WALL, curses.color_pair(pair))
             self.screen.move(og_y, og_x)
+            #TODO: (fix) move(y, x) fails if x or y out of bounds
 
     def _draw_top_line(self, row: List[int]) -> None:
         walls, fronts, blocks, entry, m_exit, solve = self.palette
@@ -187,10 +189,13 @@ class MazeRenderer:
         self.screen.scrollok(True)
         self.screen.attron(curses.color_pair(walls))
 
+
         for i in range(len(grid)):
-            self._draw_top_line(grid[i])
-            self._draw_row(grid[i])
-        self._draw_bottom(grid[-1])
+            _, screen_width = self.screen.getmaxyx()
+            max_x = screen_width // 4 - 1
+            self._draw_top_line(grid[i][:max_x])
+            self._draw_row(grid[i][:max_x])
+        self._draw_bottom(grid[-1][:max_x])
 
         self.screen.addstr(self.WALL)
         self.screen.addstr("\n\n")

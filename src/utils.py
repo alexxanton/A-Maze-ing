@@ -10,7 +10,7 @@ def generate_name(name_seed: str) -> str:
     start = {"0": "rakh'", "1": "ar'", "2": "set", "3": "kha'", "4": "amon",
              "5": "ra'", "6": "thut", "7": "nekh'", "8": "ab'", "9": "sekh'"}
 
-    middle = {"0": "ukt", "1": "to", "2": "qaal", "3": "sav", "4": "yok",
+    middle = {"0": "ukt", "1": "to", "2": "qal", "3": "sav", "4": "yok",
               "5": "gor", "6": "khur", "7": "maat", "8": "hav", "9": "kit"}
 
     alt = {"0": "sen", "1": "tek", "2": "rah", "3": "ket", "4": "mon",
@@ -26,7 +26,7 @@ def generate_name(name_seed: str) -> str:
             name += option[ch]
         elif i == len(name_seed) - 1:
             name += end[ch]
-        else:
+        elif i < 3:
             if ch == last:
                 name += alt[ch]
                 last = ""
