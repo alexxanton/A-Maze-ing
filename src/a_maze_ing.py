@@ -1,5 +1,5 @@
 import sys
-from parse import parse, ParsingError
+from parser import ConfigParser, ParsingError
 import curses
 from interactive_menu import InteractiveMenu
 
@@ -9,9 +9,10 @@ def main(stdscr: curses.window) -> None:
         print("No config file provided!")
         return
     try:
-        config = parse(sys.argv[1])
+        config_parser = ConfigParser()
+        config = config_parser.parse(sys.argv[1])
     except ParsingError as e:
-        print("Error while parsing file:", e)
+        exit(f"Error while parsing file: {e}")
         return
 
     menu = InteractiveMenu(config, stdscr)
