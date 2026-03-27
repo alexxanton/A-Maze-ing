@@ -22,11 +22,20 @@ class InteractiveMenu:
         self.renderer.init()
         #curses.raw()
 
+    def screen_resized(self, size = {}):
+        current = self.screen.getmaxyx()
+        last = getattr(self, "_last_size", None)
+
+        self._last_size = current
+        return last is not None and current != last
+
     def start(self) -> None:
         gen_seed = randint(0, 1_000_000)
         maze = self.generate_maze(gen_seed)
         while True:
             seed(gen_seed)
+            if self.screen_resized():
+                self.screen.clear()
             self.renderer.draw_maze(
                 maze.grid,
                 self.color,

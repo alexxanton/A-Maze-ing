@@ -42,6 +42,8 @@ def process_values(settings: Dict[str, Any]) -> MazeConfig:
             coords = int(parts[0]), int(parts[1])
             if coords[0] < 0 or coords[1] < 0:
                 raise ValueError
+            if coords[0] >= width or coords[1] >= height:
+                raise ParsingError("ENTRY and EXIT must be under the grid limits")
             return coords
         except ValueError:
             raise ParsingError(
@@ -75,7 +77,7 @@ def read_and_parse_file(file: str) -> MazeConfig:
             if line.count("=") != 1:
                 raise ParsingError("Only one '=' needed for each line")
 
-            key, value = line.split("=")
+            key, value = [item.strip() for item in line.split("=", 1)]
             if key not in required:
                 raise ParsingError(f"Unknown key: '{key}'")
             if key in settings:

@@ -174,6 +174,7 @@ class MazeRenderer:
             self.screen.addstr(self.WALL)
             if cell & Direction.SOUTH:
                 self.screen.addstr(self.WALL)
+        self.screen.addstr(self.WALL)
 
     def draw_maze(
         self,
@@ -189,15 +190,17 @@ class MazeRenderer:
         self.screen.scrollok(True)
         self.screen.attron(curses.color_pair(walls))
 
-
-        for i in range(len(grid)):
-            _, screen_width = self.screen.getmaxyx()
+        screen_height = self.screen.getmaxyx()[0]
+        max_y = screen_height // 1 - 4
+        for i in range(len(grid[:max_y])):
+            screen_width = self.screen.getmaxyx()[1]
             max_x = screen_width // 4 - 1
             self._draw_top_line(grid[i][:max_x])
             self._draw_row(grid[i][:max_x])
-        self._draw_bottom(grid[-1][:max_x])
 
-        self.screen.addstr(self.WALL)
+        if len(grid[:max_y]) < max_y:
+            self._draw_bottom(grid[-1][:max_x])
+
         self.screen.addstr("\n\n")
         self.screen.attroff(curses.color_pair(3))
 
