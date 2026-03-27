@@ -1,4 +1,5 @@
-from typing import Any, List, Dict, Tuple, get_type_hints, get_origin
+from typing import get_type_hints, get_origin, get_args
+from typing import Any, Union, List, Dict, Tuple
 from generator import MazeConfig
 
 
@@ -11,14 +12,18 @@ class ParsingError(Exception):
 class ConfigParser:
     def __init__(self) -> None:
         self.required = []
+        self.optional = []
         self.types = {}
 
-    def _get_required_fields(self) -> None:
+    def _get_settings(self) -> None:
         for name, t in get_type_hints(MazeConfig).items():
-            if name.startswith("m_"):
-                name = name.removeprefix("m_")
-            self.required.append(name.upper())
-            self.types[name.upper()] = t
+            name = name.removeprefix("m_").upper()
+            if get_origin(t) is Union and type(None) in get_args(t):
+                self.optional.append(name)
+            else:
+                self.required.append(name)
+            self.types[name] = t
+        #exit(str(self.types.values()))
 
     def _process_values(self, settings: Dict[str, Any]) -> MazeConfig:
         """Validate and store config values"""
@@ -94,9 +99,8 @@ class ConfigParser:
 
     def _read_and_parse_file(self, file: str) -> MazeConfig:
         """Attempts to read a file and parse its contents"""
-        self._get_required_fields()
+        self._get_settings()
         settings = {}
-        required = [str(item) for item in list(self.required)]
         with open(file, "r") as f:
             for line in f:
                 line = line.strip()
@@ -108,13 +112,13 @@ class ConfigParser:
                     raise ParsingError("Only one '=' needed for each line")
 
                 key, value = [item.strip() for item in line.split("=", 1)]
-                if key not in required:
+                if key not in self.required and key not in self.optional:
                     raise ParsingError(f"Unknown key: '{key}'")
                 if key in settings:
                     raise ParsingError(f"Repeated key: '{key}'")
                 settings[key] = value
 
-            missing = set(required).difference(settings.keys())
+            missing = set(self.required).difference(settings.keys())
             if missing:
                 raise ParsingError(f"Missing settings: {missing}")
 

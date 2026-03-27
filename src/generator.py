@@ -1,5 +1,5 @@
 from enum import IntFlag, auto
-from random import randrange, choice, seed
+from random import randrange, choice, seed, randint
 from typing import List, Tuple, Callable, Optional
 from dataclasses import dataclass
 
@@ -9,10 +9,12 @@ class MazeConfig:
     """Data class for storing the maze config"""
     width: int
     height: int
-    entry: tuple[int, int]
-    m_exit: tuple[int, int]
+    entry: Tuple[int, int]
+    m_exit: Tuple[int, int]
     output_file: str
     perfect: bool
+    seed: Optional[int] = randint(0, 1_000_000)
+    recursive: Optional[bool] = False
 
 
 class Direction(IntFlag):
@@ -54,6 +56,8 @@ class MazeGenerator:
         m_exit: tuple[int, int],
         output_file: str,
         perfect: bool,
+        seed: int,
+        recursive: bool
     ) -> None:
         self.width: int = width
         self.height: int = height
