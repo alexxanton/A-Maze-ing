@@ -15,7 +15,9 @@ class InteractiveMenu:
         self.screen = screen
         self.renderer = MazeRenderer(self.screen)
         self.maze_gen = MazeGenerator(*astuple(self.config))
+        self.maze = self.maze_gen.create()
         self.color = 0
+        self.show_path = False
 
     def init(self) -> None:
         curses.curs_set(0)
@@ -29,30 +31,38 @@ class InteractiveMenu:
         self._last_size = current
         return last is not None and current != last
 
+    def display_menu_info(self) -> None:
+        self.screen.scrollok(True)
+        self.screen.addstr(f"Seed: {self.maze_gen.seed:10}")
+        exit(type(self.maze_gen.width))
+        self.screen.addstr(
+            generate_name(
+                str((self.maze_gen.seed + self.maze.width + self.maze.height))
+            )
+        )
+        if not self.maze.logo:
+            self.screen.addstr("Warning: 42 logo doesn't fit")
+        self.screen.addstr("\n" + ("─" * 81) + "\n")
+        self.screen.addstr(
+            "(r): Regenerate\t\t\t(t): Toggle Path\t\t(c): Change Color\n"
+            "(a): Play Animations\t\t(g): Play Game\t\t\t(q): Quit"
+        )
+        self.screen.scrollok(False)
+
     def start(self) -> None:
         gen_seed = randint(0, 1_000_000)
-        maze = self.generate_maze(gen_seed)
+        #maze = self.generate_maze(gen_seed)
         while True:
-            seed(gen_seed)
+            #seed(gen_seed)
             if self.screen_resized():
                 self.screen.clear()
             self.renderer.draw_maze(
-                maze.grid,
+                self.maze.grid,
                 self.color,
-                maze.entities,
+                self.maze.entities,
                 wait=False
             )
-            self.screen.addstr("Seed: " + "{:<10d}".format(gen_seed))
-            self.screen.addstr(
-                generate_name(str(gen_seed + maze.width + maze.height))
-            )
-            if not maze.logo:
-                self.screen.addstr("Warning: 42 logo doesn't fit")
-            self.screen.addstr("\n" + ("─" * 81) + "\n")
-            self.screen.addstr(
-                "(r): Regenerate\t\t\t(t): Toggle Path\t\t(c): Change Color\n"
-                "(a): Play Animations\t\t(g): Play Game\t\t\t(q): Quit"
-            )
+            self.display_menu_info()
             self.screen.refresh()
             self.screen.timeout(-1)
 
@@ -63,15 +73,15 @@ class InteractiveMenu:
                 break
             elif ch == ord("r"):
                 gen_seed = randint(0, 1_000_000)
-                maze = self.generate_maze(gen_seed)
+                self.maze = self.generate_maze(gen_seed)
             elif ch == ord("a"):
                 #self.screen.timeout(20)
                 #maze = self.generate_maze(gen_seed, draw=True)
                 self.screen.timeout(10)
                 def wrap(grid):
                     self.renderer.draw_maze(
-                        grid, self.color, maze.entities, wait=True)
-                solution = solve_maze(maze, wrap, self.screen)
+                        grid, self.color, self.maze.entities, wait=True)
+                solution = solve_maze(self.maze, wrap, self.screen)
                 self.renderer.draw_path(solution)
                 self.screen.timeout(-1)
                 self.screen.getch()

@@ -186,12 +186,14 @@ class MazeRenderer:
         self.palette = self.variations[color]
         walls, fronts, blocks, entry, m_exit, solve = self.palette
 
+        screen_height = self.screen.getmaxyx()[0]
+        if screen_height <= 3:
+            return
+
+        max_y = screen_height // 2 - 2
         self.screen.move(0, 0)
-        self.screen.scrollok(True)
         self.screen.attron(curses.color_pair(walls))
 
-        screen_height = self.screen.getmaxyx()[0]
-        max_y = screen_height // 1 - 4
         for i in range(len(grid[:max_y])):
             screen_width = self.screen.getmaxyx()[1]
             max_x = screen_width // 4 - 1
@@ -224,6 +226,9 @@ class MazeRenderer:
             x_dir = x2 - x  # -1, 0 or 1
             y_dir = y2 - y  # -1, 0 or 1
 
+            screen_height, screen_width = self.screen.getmaxyx()
+            if x > screen_width // 4 - 2 or y > screen_height // 2 - 1:
+                continue
             self.screen.addstr(y_pos, x_pos, self.EMPTY)
             self.screen.addstr(y_pos + y_dir, x_pos + (x_dir * 2), self.EMPTY)
 

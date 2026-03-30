@@ -65,6 +65,8 @@ class MazeGenerator:
         self.m_exit: tuple[int, int] = m_exit
         self.output_file: str = output_file
         self.perfect: bool = perfect
+        self.seed = seed
+        self.recursive = recursive
         self.draw_method: Optional[Callable[[List[List[int]]], None]] = None
 
     def _place_42(self, grid: List[List[int]]) -> bool:
