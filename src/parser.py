@@ -1,5 +1,5 @@
 from typing import get_type_hints, get_origin, get_args
-from typing import Any, Union, List, Dict, Tuple
+from typing import Any, Union, Dict, List, Tuple
 from generator import MazeConfig
 
 
@@ -11,19 +11,22 @@ class ParsingError(Exception):
 
 class ConfigParser:
     def __init__(self) -> None:
-        self.required = []
-        self.optional = []
-        self.types = {}
+        self.required: List[str] = []
+        self.optional: List[str] = []
+        self.types: Dict[str, type] = {}
 
     def _get_settings(self) -> None:
+        def is_optional(t: type) -> bool:
+            return get_origin(t) is Union and type(None) in get_args(t)
+
         for name, t in get_type_hints(MazeConfig).items():
             name = name.removeprefix("m_").upper()
-            if get_origin(t) is Union and type(None) in get_args(t):
+            if is_optional(t):
                 self.optional.append(name)
+                self.types[name] = get_args(t)[0]
             else:
+                self.types[name] = t
                 self.required.append(name)
-            self.types[name] = t
-        #exit(str(self.types.values()))
 
     def _process_values(self, settings: Dict[str, Any]) -> MazeConfig:
         """Validate and store config values"""
@@ -50,15 +53,11 @@ class ConfigParser:
                 coords = int(parts[0]), int(parts[1])
                 if coords[0] < 0 or coords[1] < 0:
                     raise ValueError
-                if coords[0] >= settings["WIDTH"] or coords[1] >= settings["HEIGHT"]:
-                    raise ParsingError(
-                        f"{coord}'s coordinates are out of bounds {coords}\n"
-                        f"Limit: ({settings['WIDTH']}, {settings['HEIGHT']})"
-                    )
                 settings[coord] = coords
             except ValueError:
                 raise ParsingError(
-                    f"(ValueError): {parts} Coords must be non-negative integers"
+                    f"(ValueError): {parts} "
+                    "Coords must be non-negative integers"
                 )
 
         def parse_bool(b: str) -> None:
@@ -66,36 +65,43 @@ class ConfigParser:
                 raise ParsingError(f"{b} must be either 'True' or 'False'")
             settings[b] = settings[b] == "True"
 
-        def get_nums() -> List[str]:
-            return [
-                item for item in self.required
-                if self.types[item] is int
-            ]
+        def check_out_of_bounds(name: str):
+            if name not in settings:
+                raise ParsingError(f"Unknown coord '{name}'")
+            coords = settings[name]
+            if (
+                coords[0] >= settings["WIDTH"]
+                or coords[1] >= settings["HEIGHT"]
+            ):
+                raise ParsingError(
+                    f"{name}'s coordinates are out of bounds {coords}\n"
+                    f"Limit: ({settings['WIDTH']}, {settings['HEIGHT']})"
+                )
 
-        def get_coords() -> List[str]:
-            return [
-                item for item in self.required
-                if get_origin(self.types[item]) is tuple
-            ]
+        for key in settings.keys():
+            t = self.types[key]
 
-        def get_bools() -> List[str]:
-            return [item for item in self.required if self.types[item] is bool]
+            if t is int:
+                parse_num(key)
+            elif get_origin(t) is tuple:
+                parse_coord(key)
+            elif t is bool:
+                parse_bool(key)
 
-        for num in get_nums():
-            parse_num(num)
-
-        for coord in get_coords():
-            parse_coord(coord)
-
-        for b in get_bools():
-            parse_bool(b)
+        check_out_of_bounds("ENTRY")
+        check_out_of_bounds("EXIT")
 
         if not settings["OUTPUT_FILE"]:
             raise ParsingError("OUTPUT_FILE must not be empty")
 
-        config = [item for item in settings.values()]
-        return MazeConfig(*config)
+        if settings["ENTRY"] == settings["EXIT"]:
+            raise ParsingError("ENTRY and EXIT overlap")
 
+        settings = {
+            key.lower() if key != "EXIT" else "m_exit": value
+            for key, value in settings.items()
+        }
+        return MazeConfig(**settings)
 
     def _read_and_parse_file(self, file: str) -> MazeConfig:
         """Attempts to read a file and parse its contents"""
@@ -123,7 +129,6 @@ class ConfigParser:
                 raise ParsingError(f"Missing settings: {missing}")
 
         return self._process_values(settings)
-
 
     def parse(self, file: str) -> MazeConfig:
         """Parse file to generate maze"""
