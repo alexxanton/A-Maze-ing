@@ -96,6 +96,7 @@ class MazeGenerator:
         return True
 
     def create(self) -> Maze:
+        seed(self.seed)
         maze = Maze(self.width, self.height)
         maze.logo = self._place_42(maze.grid)
         self._prim(maze.grid)
@@ -156,7 +157,14 @@ class MazeGenerator:
                 return Direction.SOUTH
             return Direction.NONE
 
-        mark_cell(*self.entry)
+        def get_valid_coords() -> List[Tuple[int, int]]:
+            return [
+                (x, y) for y in range(self.height)
+                for x in range(self.width)
+                if not grid[y][x] & 0x40
+            ]
+
+        mark_cell(*choice(get_valid_coords()))
         if self.draw_method:
             self.draw_method(grid)
 
