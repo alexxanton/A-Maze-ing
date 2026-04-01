@@ -98,22 +98,24 @@ class MazeRenderer:
         walls, fronts, blocks, entry, m_exit, solve = self.palette
 
         screen_height, screen_width = self.screen.getmaxyx()
+        og_y , og_x= self.screen.getyx()
         for entity in entities:
-            og_x, og_y = self.screen.getyx()
             x, y = entity.pos
             x = x * 4 + 2
             y = y * 2 + 1
-            if x >= screen_width or y >= screen_height:
-                self.screen.move(og_y, og_x)
+
+            if x >= screen_width - 1 or y >= screen_height - 1:
                 continue
+
             pair = 0
             if entity.name == "entry":
                 pair = entry
             elif entity.name == "exit":
                 pair = m_exit
+
             self.screen.addstr(y, x, self.WALL, curses.color_pair(pair))
-            self.screen.move(og_y, og_x)
-            #TODO: (fix) move(y, x) fails if x or y out of bounds
+
+        self.screen.move(og_y, og_x)
 
     def _draw_top_line(self, row: List[int]) -> None:
         walls, fronts, blocks, entry, m_exit, solve = self.palette
