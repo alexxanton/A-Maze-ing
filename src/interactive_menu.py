@@ -32,28 +32,48 @@ class InteractiveMenu:
         return last is not None and current != last
 
     def display_menu_info(self) -> None:
+        options = ["(r): Regenerate", "(t): Toggle Path", "(c): Change Color",
+                   "(a): Play Animations", "(g): Play Game", "(q): Quit"]
         self.screen.scrollok(True)
-        self.screen.addstr(f"Seed: {self.maze_gen.seed:10}")
-        exit(type(self.maze_gen.width))
+        self.screen.addstr(f"Seed: {self.maze_gen.seed:<10}")
         self.screen.addstr(
             generate_name(
-                str((self.maze_gen.seed + self.maze.width + self.maze.height))
+                str(self.maze_gen.seed + self.maze.width + self.maze.height)
             )
         )
         if not self.maze.logo:
             self.screen.addstr("Warning: 42 logo doesn't fit")
         self.screen.addstr("\n" + ("─" * 81) + "\n")
-        self.screen.addstr(
-            "(r): Regenerate\t\t\t(t): Toggle Path\t\t(c): Change Color\n"
-            "(a): Play Animations\t\t(g): Play Game\t\t\t(q): Quit"
-        )
+        offset = 0
+        padding = 20
+        screen_width = self.screen.getmaxyx()[1]
+        if screen_width < 45:
+            rows = 6
+            cols = 1
+            offset_amount = 0
+        elif screen_width < 60:
+            rows = 3
+            cols = 2
+            offset_amount = 1
+        else:
+            rows = 2
+            cols = 3
+            offset_amount = 2
+            padding = 22
+
+        for row in range(rows):
+            x = 0
+            for col in range(cols):
+                option = options[row + col + offset]
+                self.screen.addstr(f"{option:{padding}}")
+            offset += offset_amount
+            self.screen.addch("\n")
         self.screen.scrollok(False)
 
     def start(self) -> None:
-        gen_seed = randint(0, 1_000_000)
         #maze = self.generate_maze(gen_seed)
         while True:
-            #seed(gen_seed)
+            seed(self.maze_gen.seed)
             if self.screen_resized():
                 self.screen.clear()
             self.renderer.draw_maze(
@@ -72,11 +92,11 @@ class InteractiveMenu:
             if ch == ord("q"):
                 break
             elif ch == ord("r"):
-                gen_seed = randint(0, 1_000_000)
-                self.maze = self.generate_maze(gen_seed)
+                self.maze_gen.seed = randint(0, 1_000_000)
+                self.maze = self.generate_maze()
             elif ch == ord("a"):
                 #self.screen.timeout(20)
-                #maze = self.generate_maze(gen_seed, draw=True)
+                #maze = self.generate_maze(draw=True)
                 self.screen.timeout(10)
                 def wrap(grid):
                     self.renderer.draw_maze(
@@ -96,7 +116,7 @@ class InteractiveMenu:
 
         curses.curs_set(1)
 
-    def generate_maze(self, gen_seed: int, draw: bool = False) -> Maze:
+    def generate_maze(self, draw: bool = False) -> Maze:
         def draw_wrapper(grid: List[List[int]]) -> None:
             self.renderer.draw_maze(grid, self.color)
 
@@ -106,7 +126,6 @@ class InteractiveMenu:
             self.maze_gen.draw_method = None
 
         try:
-            seed(gen_seed)
             maze = self.maze_gen.create()
         except ValueError as e:
             exit(f"Error: {e}")
