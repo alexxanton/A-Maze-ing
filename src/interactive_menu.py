@@ -32,8 +32,11 @@ class InteractiveMenu:
         return last is not None and current != last
 
     def display_menu_info(self) -> None:
-        options = ["(r): Regenerate", "(t): Toggle Path", "(c): Change Color",
-                   "(a): Play Animations", "(g): Play Game", "(q): Quit"]
+        options = [
+            "(r): Regenerate", "(t): Toggle Path", "(c): Change Color",
+            "(s): See Solving", "(x): See Generation", "(g): Play Game",
+            "(a): Adjust", "(q): Quit"
+        ]
         self.screen.scrollok(True)
         self.screen.addstr(f"Seed: {self.maze_gen.seed:<10}")
         self.screen.addstr(
@@ -43,31 +46,26 @@ class InteractiveMenu:
         )
         if not self.maze.logo:
             self.screen.addstr("Warning: 42 logo doesn't fit")
-        self.screen.addstr("\n" + ("─" * 81) + "\n")
+        screen_width = self.screen.getmaxyx()[1]
+        self.screen.addnstr("\n" + ("─" * 80), screen_width)
+        self.screen.addch("\n")
         offset = 0
         padding = 20
-        screen_width = self.screen.getmaxyx()[1]
-        if screen_width < 45:
-            rows = 6
+        if screen_width < 50:
             cols = 1
-            offset_amount = 0
-        elif screen_width < 60:
-            rows = 3
+        elif screen_width < 70:
             cols = 2
-            offset_amount = 1
         else:
-            rows = 2
             cols = 3
-            offset_amount = 2
-            padding = 22
 
-        for row in range(rows):
-            x = 0
-            for col in range(cols):
-                option = options[row + col + offset]
-                self.screen.addstr(f"{option:{padding}}")
-            offset += offset_amount
-            self.screen.addch("\n")
+        for i in range(len(options)):
+            padding = 25
+            option = options[i]
+            if i % cols == cols - 1:
+                padding = 0
+            self.screen.addstr(f"{option:{padding}}")
+            if i % cols == cols - 1:
+                self.screen.addch("\n")
         self.screen.scrollok(False)
 
     def start(self) -> None:
