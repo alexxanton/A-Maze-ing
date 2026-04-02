@@ -33,4 +33,4 @@ def generate_name(name_seed: str) -> str:
             else:
                 name += middle[ch]
             last = ch
-    return f"Maze name: {name.capitalize()}"
+    return name.replace("''", "'").capitalize()
