@@ -114,7 +114,10 @@ class MazeGenerator:
         seed(self.seed)
         maze = Maze(self.width, self.height)
         maze.logo = self._place_42(maze.grid)
-        self._prim(maze.grid)
+        if self.recursive:
+            self._recursive_backtracking(maze.grid)
+        else:
+            self._prim(maze.grid)
         if not self.perfect:
             self._destroy_walls(maze.grid)
         maze.add_entity(MazeEntity("entry", self.entry))
@@ -192,6 +195,63 @@ class MazeGenerator:
             grid[ny][nx] |= IN
 
             mark_cell(x, y)
+
+            if self.draw_method:
+                self.draw_method(grid)
+
+
+    def _recursive_backtracking(self, grid: List[List[int]]) -> None:
+        IN = 0x10
+        BLOCK = 0x40
+        stack: List[Tuple[int, int]] = [self.entry]
+        grid[self.entry[1]][self.entry[0]] |= IN
+        opposite = {
+            Direction.NORTH: Direction.SOUTH,
+            Direction.SOUTH: Direction.NORTH,
+            Direction.WEST: Direction.EAST,
+            Direction.EAST: Direction.WEST,
+        }
+        if self.draw_method:
+            self.draw_method(grid)
+
+        def get_direction(x: int, y: int, nx: int, ny: int) -> Direction:
+            """Get the direction between two cells"""
+            if x > nx:
+                return Direction.WEST
+            if x < nx:
+                return Direction.EAST
+            if y > ny:
+                return Direction.NORTH
+            if y < ny:
+                return Direction.SOUTH
+            return Direction.NONE
+
+        while stack:
+            x, y = stack[-1]
+            neighbors = []
+            for dx, dy, direction in [
+                    (0, -1, Direction.NORTH),
+                    (0, 1, Direction.SOUTH),
+                    (1, 0, Direction.EAST),
+                    (-1, 0, Direction.WEST)
+            ]:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < self.width and 0 <= ny < self.height:
+                    if not (grid[ny][nx] & IN) and not (grid[ny][nx] & BLOCK):
+                        neighbors.append((nx, ny, direction))
+
+            if neighbors:
+                nx, ny, direction = choice(neighbors)
+                d = int(direction)
+                od = int(opposite[direction])
+                grid[y][x] &= ~d
+                grid[ny][nx] &= ~od
+                grid[ny][nx] |= IN
+                # grid[ny][nx] |= 0x20
+                stack.append((nx, ny))
+
+            else:
+                stack.pop()
 
             if self.draw_method:
                 self.draw_method(grid)
