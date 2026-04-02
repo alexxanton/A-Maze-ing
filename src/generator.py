@@ -95,11 +95,28 @@ class MazeGenerator:
             grid[y + start_y][x + start_x] |= BLOCK
         return True
 
+    def _get_valid_coords(
+        self, grid: List[List[int]]
+    ) -> List[Tuple[int, int]]:
+        return [
+            (x, y) for y in range(self.height)
+            for x in range(self.width)
+            if not grid[y][x] & 0x40
+        ]
+
+    def _destroy_walls(self, grid: List[List[int]]) -> None:
+        coords = self._get_valid_coords(grid)
+        for i in range(self.width * self.height // 10):
+            x, y = coords.pop(randrange(len(coords)))
+            grid[y][x] &= 0b0000
+
     def create(self) -> Maze:
         seed(self.seed)
         maze = Maze(self.width, self.height)
         maze.logo = self._place_42(maze.grid)
         self._prim(maze.grid)
+        if not self.perfect:
+            self._destroy_walls(maze.grid)
         maze.add_entity(MazeEntity("entry", self.entry))
         maze.add_entity(MazeEntity("exit", self.m_exit))
         return maze
@@ -157,14 +174,7 @@ class MazeGenerator:
                 return Direction.SOUTH
             return Direction.NONE
 
-        def get_valid_coords() -> List[Tuple[int, int]]:
-            return [
-                (x, y) for y in range(self.height)
-                for x in range(self.width)
-                if not grid[y][x] & 0x40
-            ]
-
-        mark_cell(*choice(get_valid_coords()))
+        mark_cell(*choice(self._get_valid_coords(grid)))
         if self.draw_method:
             self.draw_method(grid)
 
