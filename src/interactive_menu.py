@@ -16,8 +16,10 @@ class InteractiveMenu:
         self.renderer = MazeRenderer(self.screen)
         self.maze_gen = MazeGenerator(*astuple(self.config))
         self.maze = self.maze_gen.create()
+        self.solution: List[Tuple[int, int]] = solve_maze(self.maze)
         self.color = 0
         self.show_path = False
+        self.run = True
 
     def init(self) -> None:
         curses.curs_set(0)
@@ -34,16 +36,15 @@ class InteractiveMenu:
     def display_menu_info(self) -> None:
         options = [
             "(r): Regenerate", "(t): Toggle Path", "(c): Change Color",
-            "(s): See Solving", "(x): See Generation", "(g): Play Game",
-            "(a): Adjust", "(q): Quit"
+            "(s): See Solving", "(z): See Generation", "(g): Play Game",
+            "(a): Adjust to screen", "(q): Quit"
         ]
         self.screen.scrollok(True)
         self.screen.addstr(f"Seed: {self.maze_gen.seed:<10}")
-        self.screen.addstr(
-            generate_name(
-                str(self.maze_gen.seed + self.maze.width + self.maze.height)
-            )
+        maze_name = generate_name(
+            str(self.maze_gen.seed + self.maze.width + self.maze.height)
         )
+        self.screen.addstr(f"Maze name: {maze_name:20}")
         if not self.maze.logo:
             self.screen.addstr("Warning: 42 logo doesn't fit")
         screen_width = self.screen.getmaxyx()[1]
@@ -63,14 +64,46 @@ class InteractiveMenu:
             option = options[i]
             if i % cols == cols - 1:
                 padding = 0
+                option += "\n"
             self.screen.addstr(f"{option:{padding}}")
-            if i % cols == cols - 1:
-                self.screen.addch("\n")
         self.screen.scrollok(False)
 
+    def handle_options(self) -> None:
+        self.screen.timeout(-1)
+        ch = self.screen.getch()
+        if ch <= ord("Z"):
+            ch += ord("a") - ord("A")
+
+        match chr(ch):
+            case "q":
+                self.run = False
+            case "r":
+                self.maze_gen.seed = randint(0, 1_000_000)
+                self.maze = self.generate_maze()
+                self.solution = solve_maze(self.maze)
+                self.show_path = False
+            case "z":
+                self.screen.timeout(20)
+                self.generate_maze(draw=True)
+                self.show_path = False
+            case "s":
+                self.screen.timeout(10)
+                def wrap(grid):
+                    self.renderer.draw_maze(
+                        grid, self.color, self.maze.entities, wait=True)
+                solve_maze(self.maze, wrap)
+                self.show_path = True
+            case "c":
+                self.color += 1
+                if self.color > 2:
+                    self.color = 0
+            case "t":
+                self.show_path = not self.show_path
+            case "\n":
+                pass
+
     def start(self) -> None:
-        #maze = self.generate_maze(gen_seed)
-        while True:
+        while self.run:
             seed(self.maze_gen.seed)
             if self.screen_resized():
                 self.screen.clear()
@@ -81,36 +114,10 @@ class InteractiveMenu:
                 wait=False
             )
             self.display_menu_info()
+            if self.show_path:
+                self.renderer.draw_path(self.solution)
             self.screen.refresh()
-            self.screen.timeout(-1)
-
-            ch = self.screen.getch()
-            if ch <= ord("Z"):
-                ch += ord("a") - ord("A")
-            if ch == ord("q"):
-                break
-            elif ch == ord("r"):
-                self.maze_gen.seed = randint(0, 1_000_000)
-                self.maze = self.generate_maze()
-            elif ch == ord("a"):
-                #self.screen.timeout(20)
-                #maze = self.generate_maze(draw=True)
-                self.screen.timeout(10)
-                def wrap(grid):
-                    self.renderer.draw_maze(
-                        grid, self.color, self.maze.entities, wait=True)
-                solution = solve_maze(self.maze, wrap, self.screen)
-                self.renderer.draw_path(solution)
-                self.screen.timeout(-1)
-                self.screen.getch()
-            elif ch == ord("c"):
-                self.color += 1
-                if self.color > 2:
-                    self.color = 0
-            elif ch == ord("t"):
-                pass
-            elif ch == ord("\n"):
-                pass
+            self.handle_options()
 
         curses.curs_set(1)
 

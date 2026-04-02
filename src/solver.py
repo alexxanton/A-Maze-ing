@@ -19,7 +19,7 @@ class Node:
         return path
 
 
-def solve_maze(maze: Maze, draw, screen) -> List[Tuple[int, int]]:
+def solve_maze(maze: Maze, draw = None) -> List[Tuple[int, int]]:
     def get_entity(name: str) -> MazeEntity | None:
         return next((e for e in maze.entities if e.name == name), None)
 
@@ -78,6 +78,7 @@ def solve_maze(maze: Maze, draw, screen) -> List[Tuple[int, int]]:
             nodes.append(nb)
             grid[ny][nx] |= VISITED
 
-        draw(grid)
+        if draw:
+            draw(grid)
 
     return []
