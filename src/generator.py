@@ -34,9 +34,12 @@ class MazeEntity:
 
 class Maze:
     """Maze containing a grid and its attributes"""
-    def __init__(self, width: int, height: int) -> None:
+    def __init__(self, width: int, height: int,
+                 entry: Tuple[int, int], m_exit: Tuple[int, int]) -> None:
         self.width = width
         self.height = height
+        self.entry = entry
+        self.m_exit = m_exit
         self.grid = [[15] * self.width for _ in range(self.height)]
         self.entities: List[MazeEntity] = []
         self.logo: bool = True
@@ -44,6 +47,17 @@ class Maze:
     def add_entity(self, entity: MazeEntity) -> None:
         if isinstance(entity, MazeEntity):
             self.entities.append(entity)
+
+    def generate_output_file(self) -> None:
+        with open("output.txt", "w") as file:
+            for row in self.grid:
+                line = "".join(format(col & 0b1111, "X") for col in row)
+                file.write(line + "\n")
+            file.write("\n")
+            file.write(",".join(map(str, self.entry)) + "\n")
+            file.write(",".join(map(str, self.m_exit)) + "\n")
+            file.write("SWE")
+            file.write("\n")
 
 
 class MazeGenerator:
@@ -112,7 +126,7 @@ class MazeGenerator:
 
     def create(self) -> Maze:
         seed(self.seed)
-        maze = Maze(self.width, self.height)
+        maze = Maze(self.width, self.height, self.entry, self.m_exit)
         maze.logo = self._place_42(maze.grid)
         if self.recursive:
             self._recursive_backtracking(maze.grid)
@@ -122,6 +136,7 @@ class MazeGenerator:
             self._destroy_walls(maze.grid)
         maze.add_entity(MazeEntity("entry", self.entry))
         maze.add_entity(MazeEntity("exit", self.m_exit))
+        maze.generate_output_file()
         return maze
 
     def _prim(self, grid: List[List[int]]) -> None:

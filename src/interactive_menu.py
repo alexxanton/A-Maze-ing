@@ -71,7 +71,7 @@ class InteractiveMenu:
     def handle_options(self) -> None:
         self.screen.timeout(-1)
         ch = self.screen.getch()
-        if ch <= ord("Z"):
+        if ch >= ord("A") and ch <= ord("Z"):
             ch += ord("a") - ord("A")
 
         match chr(ch):
@@ -99,8 +99,8 @@ class InteractiveMenu:
                     self.color = 0
             case "t":
                 self.show_path = not self.show_path
-            case "\n":
-                pass
+            case "\n" | " ":
+                self.show_path = False
 
     def start(self) -> None:
         while self.run:
