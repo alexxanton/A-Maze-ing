@@ -1,5 +1,5 @@
 from enum import IntFlag, auto
-from random import randrange, choice, seed, randint
+from random import randrange, choice, seed, randint, shuffle
 from typing import List, Tuple, Callable, Optional
 from dataclasses import dataclass
 
@@ -14,7 +14,7 @@ class MazeConfig:
     output_file: str
     perfect: bool
     seed: Optional[int] = randint(0, 1_000_000)
-    recursive: Optional[bool] = False
+    algorithm: Optional[str] = "prim"
 
 
 class Direction(IntFlag):
@@ -71,7 +71,7 @@ class MazeGenerator:
         output_file: str,
         perfect: bool,
         seed: int,
-        recursive: bool
+        algorithm: str
     ) -> None:
         self.width: int = width
         self.height: int = height
@@ -80,7 +80,7 @@ class MazeGenerator:
         self.output_file: str = output_file
         self.perfect: bool = perfect
         self.seed = seed
-        self.recursive = recursive
+        self.algorithm = algorithm
         self.draw_method: Optional[Callable[[List[List[int]]], None]] = None
 
     def _place_42(self, grid: List[List[int]]) -> bool:
@@ -118,26 +118,81 @@ class MazeGenerator:
             if not grid[y][x] & 0x40
         ]
 
-    def _destroy_walls(self, grid: List[List[int]]) -> None:
-        coords = self._get_valid_coords(grid)
-        for i in range(self.width * self.height // 10):
-            x, y = coords.pop(randrange(len(coords)))
-            grid[y][x] &= 0b0000
+    def _remove_dead_ends(self, grid: List[List[int]]) -> None:
+        opposite = {
+            Direction.NORTH: Direction.SOUTH,
+            Direction.SOUTH: Direction.NORTH,
+            Direction.WEST: Direction.EAST,
+            Direction.EAST: Direction.WEST,
+        }
+        def get_neighbor(x: int, y: int) -> Tuple[int, int] | None:
+            if (
+                x >= 0 and x <= self.width - 1 and y >= 0 and y <= self.height - 1 and
+                not grid[y][x] & 0x40
+            ):
+                return x, y
+            return None
+
+        valid_coords = self._get_valid_coords(grid)
+        dead_ends = [
+            (x, y) for x, y in valid_coords
+            if (grid[y][x] & 0xF).bit_count() == 3
+        ]
+
+        length = len(dead_ends)
+        if self.algorithm == "prim":
+            length //= 3
+            shuffle(dead_ends)
+
+        for x, y in dead_ends[:length]:
+            walls = grid[y][x] & 0xF
+            open_wall = ~walls
+            dx, dy = 0, 0
+            if open_wall & Direction.WEST:
+                dx = 1
+            elif open_wall & Direction.EAST:
+                dx = -1
+            elif open_wall & Direction.NORTH:
+                dy = 1
+            elif open_wall & Direction.SOUTH:
+                dy = -1
+
+            if (grid[y][x] & 0xF).bit_count() != 3:
+                continue
+
+            neighbor = get_neighbor(x + dx, y + dy)
+            if neighbor:
+                nx, ny = neighbor
+                direction = self._get_direction(x, y, nx, ny)
+                grid[y][x] &= ~direction
+                grid[ny][nx] &= ~opposite[direction]
 
     def create(self) -> Maze:
         seed(self.seed)
         maze = Maze(self.width, self.height, self.entry, self.m_exit)
         maze.logo = self._place_42(maze.grid)
-        if self.recursive:
-            self._recursive_backtracking(maze.grid)
-        else:
+        if self.algorithm == "prim":
             self._prim(maze.grid)
+        else:
+            self._backtracking(maze.grid)
         if not self.perfect:
-            self._destroy_walls(maze.grid)
+            self._remove_dead_ends(maze.grid)
         maze.add_entity(MazeEntity("entry", self.entry))
         maze.add_entity(MazeEntity("exit", self.m_exit))
         maze.generate_output_file()
         return maze
+
+    def _get_direction(self, x: int, y: int, nx: int, ny: int) -> Direction:
+        """Get the direction between two cells"""
+        if x > nx:
+            return Direction.WEST
+        if x < nx:
+            return Direction.EAST
+        if y > ny:
+            return Direction.NORTH
+        if y < ny:
+            return Direction.SOUTH
+        return Direction.NONE
 
     def _prim(self, grid: List[List[int]]) -> None:
         IN = 0x10
@@ -180,18 +235,6 @@ class MazeGenerator:
 
             return nbs
 
-        def get_direction(x: int, y: int, nx: int, ny: int) -> Direction:
-            """Get the direction between two cells"""
-            if x > nx:
-                return Direction.WEST
-            if x < nx:
-                return Direction.EAST
-            if y > ny:
-                return Direction.NORTH
-            if y < ny:
-                return Direction.SOUTH
-            return Direction.NONE
-
         mark_cell(*choice(self._get_valid_coords(grid)))
         if self.draw_method:
             self.draw_method(grid)
@@ -203,7 +246,7 @@ class MazeGenerator:
             nx, ny = choice(nbs)
 
             # carve walls
-            direction = get_direction(x, y, nx, ny)
+            direction = self._get_direction(x, y, nx, ny)
             grid[y][x] &= ~direction
             grid[ny][nx] &= ~opposite[direction]
             #grid[y][x] |= IN
@@ -214,8 +257,7 @@ class MazeGenerator:
             if self.draw_method:
                 self.draw_method(grid)
 
-
-    def _recursive_backtracking(self, grid: List[List[int]]) -> None:
+    def _backtracking(self, grid: List[List[int]]) -> None:
         IN = 0x10
         BLOCK = 0x40
         stack: List[Tuple[int, int]] = [self.entry]
@@ -228,18 +270,6 @@ class MazeGenerator:
         }
         if self.draw_method:
             self.draw_method(grid)
-
-        def get_direction(x: int, y: int, nx: int, ny: int) -> Direction:
-            """Get the direction between two cells"""
-            if x > nx:
-                return Direction.WEST
-            if x < nx:
-                return Direction.EAST
-            if y > ny:
-                return Direction.NORTH
-            if y < ny:
-                return Direction.SOUTH
-            return Direction.NONE
 
         while stack:
             x, y = stack[-1]
