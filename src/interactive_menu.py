@@ -4,7 +4,7 @@ from random import seed, randint
 import curses
 from utils import generate_name
 from renderer import MazeRenderer
-from typing import List
+from typing import List, Tuple
 from solver import solve_maze
 from video_game import VideoGame
 
@@ -37,15 +37,17 @@ class InteractiveMenu:
         return last is not None and current != last
 
     def display_menu_info(self) -> None:
-        menu_options = [
+        options = [
             "(r): Regenerate", "(t): Toggle Path", "(c): Change Color",
             "(s): See Solving", "(g): See Generation", "(f): Play Game",
             "(a): Adjust to screen", "(q): Quit"
         ]
-        game_options = [
-            "(w): Move up", "(s): Move Down", "(a): Move left",
-            "(d): Move right", "(q): Quit game"
-        ]
+
+        if self.game.run:
+            screen_height = self.screen.getmaxyx()[0]
+            self.screen.clrtobot()
+            #self.screen.addstr(screen_height - 1, 0, "(wasd): Move (q): Quit")
+            return
 
         self.screen.scrollok(True)
         self.screen.addstr(f"Seed: {self.maze_gen.seed:<10}")
@@ -58,6 +60,7 @@ class InteractiveMenu:
         screen_width = self.screen.getmaxyx()[1]
         self.screen.addnstr("\n" + ("─" * 80), screen_width)
         self.screen.addch("\n")
+
         offset = 0
         padding = 20
         if screen_width < 50:
@@ -67,7 +70,6 @@ class InteractiveMenu:
         else:
             cols = 3
 
-        options = game_options if self.game.run else menu_options
         for i in range(len(options)):
             padding = 25
             option = options[i]
@@ -113,6 +115,7 @@ class InteractiveMenu:
                 self.show_path = not self.show_path
             case "f":
                 self.game.run = True
+                self.show_path = False
             case "\n" | " ":
                 self.show_path = False
 
@@ -127,9 +130,9 @@ class InteractiveMenu:
                 self.maze.entities,
                 wait=False
             )
-            self.display_menu_info()
             if self.show_path:
                 self.renderer.draw_path(self.solution)
+            self.display_menu_info()
             self.screen.refresh()
 
             if self.game.run:
