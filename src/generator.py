@@ -44,6 +44,10 @@ class Maze:
         self.entities: List[MazeEntity] = []
         self.logo: bool = True
 
+    def init(self):
+        self.add_entity(MazeEntity("entry", self.entry))
+        self.add_entity(MazeEntity("exit", self.m_exit))
+
     def add_entity(self, entity: MazeEntity) -> None:
         if isinstance(entity, MazeEntity):
             self.entities.append(entity)
@@ -170,6 +174,7 @@ class MazeGenerator:
     def create(self) -> Maze:
         seed(self.seed)
         maze = Maze(self.width, self.height, self.entry, self.m_exit)
+        maze.init()
         maze.logo = self._place_42(maze.grid)
         if self.algorithm == "prim":
             self._prim(maze.grid)
@@ -177,8 +182,6 @@ class MazeGenerator:
             self._backtracking(maze.grid)
         if not self.perfect:
             self._remove_dead_ends(maze.grid)
-        maze.add_entity(MazeEntity("entry", self.entry))
-        maze.add_entity(MazeEntity("exit", self.m_exit))
         maze.generate_output_file()
         return maze
 

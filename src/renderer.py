@@ -108,7 +108,7 @@ class MazeRenderer:
                 continue
 
             pair = 0
-            if entity.name == "entry":
+            if entity.name == "player":
                 pair = entry
             elif entity.name == "exit":
                 pair = m_exit
