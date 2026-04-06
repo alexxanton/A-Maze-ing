@@ -44,7 +44,7 @@ class Maze:
         self.entities: List[MazeEntity] = []
         self.logo: bool = True
 
-    def init(self):
+    def init(self) -> None:
         self.add_entity(MazeEntity("entry", self.entry))
         self.add_entity(MazeEntity("exit", self.m_exit))
 
@@ -66,6 +66,16 @@ class Maze:
 
 class MazeGenerator:
     """Generate a maze with various configurations"""
+    width: int
+    height: int
+    entry: tuple[int, int]
+    m_exit: tuple[int, int]
+    output_file: str
+    perfect: bool
+    seed: int
+    algorithm: str
+    draw_method: Optional[Callable[[List[List[int]]], None]]
+
     def __init__(
         self,
         width: int,
@@ -75,17 +85,18 @@ class MazeGenerator:
         output_file: str,
         perfect: bool,
         seed: int,
-        algorithm: str
+        algorithm: str,
+        draw_method: Optional[Callable[[List[List[int]]], None]] = None
     ) -> None:
-        self.width: int = width
-        self.height: int = height
-        self.entry: tuple[int, int] = entry
-        self.m_exit: tuple[int, int] = m_exit
-        self.output_file: str = output_file
-        self.perfect: bool = perfect
+        self.width = width
+        self.height = height
+        self.entry = entry
+        self.m_exit = m_exit
+        self.output_file = output_file
+        self.perfect = perfect
         self.seed = seed
         self.algorithm = algorithm
-        self.draw_method: Optional[Callable[[List[List[int]]], None]] = None
+        self.draw_method = draw_method
 
     def _place_42(self, grid: List[List[int]]) -> bool:
         WIDTH = 7
@@ -129,9 +140,11 @@ class MazeGenerator:
             Direction.WEST: Direction.EAST,
             Direction.EAST: Direction.WEST,
         }
+
         def get_neighbor(x: int, y: int) -> Tuple[int, int] | None:
             if (
-                x >= 0 and x <= self.width - 1 and y >= 0 and y <= self.height - 1 and
+                x >= 0 and x <= self.width - 1 and
+                y >= 0 and y <= self.height - 1 and
                 not grid[y][x] & 0x40
             ):
                 return x, y
