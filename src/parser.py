@@ -1,6 +1,6 @@
 from typing import get_type_hints, get_origin, get_args
 from typing import Any, Union, Dict, List, Tuple
-from generator import MazeConfig
+from .generator import MazeConfig
 
 
 class ParsingError(Exception):

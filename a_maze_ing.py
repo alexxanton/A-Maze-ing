@@ -1,13 +1,13 @@
 import sys
-from parser import ConfigParser, ParsingError
+from src.parser import ConfigParser, ParsingError
 import curses
-from interactive_menu import InteractiveMenu
+from src.interactive_menu import InteractiveMenu
 
 
 def main(stdscr: curses.window) -> None:
     if len(sys.argv) < 2:
-        print("No config file provided!")
-        return
+        exit("No config file provided!")
+
     try:
         config_parser = ConfigParser()
         config = config_parser.parse(sys.argv[1])
@@ -16,7 +16,6 @@ def main(stdscr: curses.window) -> None:
         return
 
     menu = InteractiveMenu(config, stdscr)
-    menu.init()
     menu.start()
 
 

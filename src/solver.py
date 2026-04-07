@@ -1,7 +1,7 @@
 from __future__ import annotations
-from generator import Maze, MazeEntity, Direction
 from typing import List, Tuple
 from copy import deepcopy
+from .generator import Maze, MazeEntity, Direction
 
 
 class Node:

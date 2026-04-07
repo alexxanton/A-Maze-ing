@@ -1,4 +1,4 @@
-from generator import Direction, MazeEntity
+from .generator import Direction, MazeEntity
 import curses
 from enum import IntEnum, auto
 from typing import List, Optional, Tuple
@@ -26,6 +26,7 @@ class Colors(IntEnum):
     GREEN_SOLVE = auto()
     BLUE_SOLVE = auto()
     ENEMY = auto()
+    COIN = auto()
 
 
 class CellFlags(IntEnum):
@@ -95,6 +96,7 @@ class MazeRenderer:
         curses.init_pair(Colors.GREEN_SOLVE, 0, 10)
         curses.init_pair(Colors.BLUE_SOLVE, 0, 6)
         curses.init_pair(Colors.ENEMY, 0, 0)
+        curses.init_pair(Colors.COIN, 3, 0)
 
     def _draw_entities(self, entities: List[MazeEntity]) -> None:
         walls, fronts, blocks, entry, m_exit, solve = self.palette
@@ -122,6 +124,8 @@ class MazeRenderer:
                 pair = m_exit
             elif entity.name == "enemy":
                 pair = Colors.ENEMY
+            elif entity.name.startswith("coin"):
+                pair = Colors.COIN
 
             self.screen.addstr(y, x, self.WALL, curses.color_pair(pair))
 

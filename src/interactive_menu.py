@@ -1,12 +1,12 @@
-from generator import MazeGenerator, Maze, MazeConfig
 from dataclasses import astuple
 from random import seed, randint
 import curses
-from utils import generate_name
-from renderer import MazeRenderer
 from typing import List, Tuple
-from video_game import VideoGame
-from solver import PathFind
+from .generator import MazeGenerator, Maze, MazeConfig
+from .utils import generate_name
+from .renderer import MazeRenderer
+from .video_game import VideoGame
+from .solver import PathFind
 
 
 class InteractiveMenu:
@@ -21,7 +21,7 @@ class InteractiveMenu:
         self.show_path = False
         self.run = True
 
-    def init(self) -> None:
+    def _init(self) -> None:
         curses.curs_set(0)
         self.renderer.init()
         self.generate_new_maze()
@@ -98,12 +98,14 @@ class InteractiveMenu:
             case "t":
                 self.show_path = not self.show_path
             case "f":
+                self.game.init()
                 self.game.run = True
                 self.show_path = False
             case "\n" | " ":
                 self.show_path = False
 
     def start(self) -> None:
+        self._init()
         while self.run:
             seed(self.maze_gen.seed)
             self.renderer.draw_maze(
@@ -142,6 +144,6 @@ class InteractiveMenu:
             self.solution = self.solver.find_path(self.maze, self.maze.entry)
             self.show_path = False
             self.game = VideoGame(self.maze, self.screen)
-            self.game.init()
+            #self.game.init()
         except ValueError as e:
             exit(f"Error: {e}")
