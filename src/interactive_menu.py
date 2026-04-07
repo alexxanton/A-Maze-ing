@@ -5,8 +5,8 @@ import curses
 from utils import generate_name
 from renderer import MazeRenderer
 from typing import List, Tuple
-from solver import solve_maze
 from video_game import VideoGame
+from solver import PathFind
 
 
 class InteractiveMenu:
@@ -16,9 +16,7 @@ class InteractiveMenu:
         self.screen = screen
         self.renderer = MazeRenderer(self.screen)
         self.maze_gen = MazeGenerator(*astuple(self.config))
-        self.maze = self.maze_gen.create()
-        self.solution: List[Tuple[int, int]] = solve_maze(self.maze)
-        self.game = VideoGame(self.maze, self.screen)
+        self.solution: List[Tuple[int, int]] = []
         self.color = 0
         self.show_path = False
         self.run = True
@@ -26,15 +24,7 @@ class InteractiveMenu:
     def init(self) -> None:
         curses.curs_set(0)
         self.renderer.init()
-        self.game.init()
-        #curses.raw()
-
-    def screen_resized(self, size = {}):
-        current = self.screen.getmaxyx()
-        last = getattr(self, "_last_size", None)
-
-        self._last_size = current
-        return last is not None and current != last
+        self.generate_new_maze()
 
     def display_menu_info(self) -> None:
         screen_height, screen_width = self.screen.getmaxyx()
@@ -88,21 +78,18 @@ class InteractiveMenu:
                 self.run = False
             case "r":
                 self.maze_gen.seed = randint(0, 1_000_000)
-                self.maze = self.generate_maze()
-                self.solution = solve_maze(self.maze)
-                self.show_path = False
-                self.game = VideoGame(self.maze, self.screen)
-                self.game.init()
+                self.generate_new_maze()
             case "g":
                 self.screen.timeout(20)
-                self.generate_maze(draw=True)
+                self.generate_new_maze(draw=True)
                 self.show_path = False
             case "s":
-                self.screen.timeout(10)
                 def wrap(grid):
                     self.renderer.draw_maze(
-                        grid, self.color, self.maze.entities, wait=True)
-                solve_maze(self.maze, wrap)
+                        grid, self.color, self.maze.entities, wait=True
+                    )
+                self.screen.timeout(10)
+                self.solver.find_path(self.maze, self.maze.entry, wrap)
                 self.show_path = True
             case "c":
                 self.color += 1
@@ -119,8 +106,6 @@ class InteractiveMenu:
     def start(self) -> None:
         while self.run:
             seed(self.maze_gen.seed)
-            if self.screen_resized():
-                self.screen.clear()
             self.renderer.draw_maze(
                 self.maze.grid,
                 self.color,
@@ -140,7 +125,7 @@ class InteractiveMenu:
 
         curses.curs_set(1)
 
-    def generate_maze(self, draw: bool = False) -> Maze:
+    def generate_new_maze(self, draw: bool = False) -> Maze:
         def draw_wrapper(grid: List[List[int]]) -> None:
             self.renderer.draw_maze(grid, self.color)
 
@@ -150,7 +135,13 @@ class InteractiveMenu:
             self.maze_gen.draw_method = None
 
         try:
-            maze = self.maze_gen.create()
+            self.maze = self.maze_gen.create()
+            ex = next(e for e in self.maze.entities if e.name == "exit")
+            en = next(e for e in self.maze.entities if e.name == "entry")
+            self.solver = PathFind(ex)
+            self.solution = self.solver.find_path(self.maze, self.maze.entry)
+            self.show_path = False
+            self.game = VideoGame(self.maze, self.screen)
+            self.game.init()
         except ValueError as e:
             exit(f"Error: {e}")
-        return maze

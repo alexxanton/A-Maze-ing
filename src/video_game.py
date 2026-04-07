@@ -1,6 +1,7 @@
 from generator import Maze, MazeEntity, Direction
 from typing import Tuple
 import curses
+from solver import PathFind
 
 
 class Player(MazeEntity):
@@ -9,18 +10,30 @@ class Player(MazeEntity):
         self.direction = Direction.NONE
 
 
+class Enemy(MazeEntity, PathFind):
+    def __init__(
+        self, name: str, pos: Tuple[int, int], target: MazeEntity
+    ) -> None:
+        super().__init__(name=name, pos=pos, target=target)
+        self.direction = Direction.NONE
+        self.frame = 5
+
+
 class VideoGame:
     def __init__(self, maze: Maze, screen: curses.window) -> None:
         self.maze = maze
         self.player = Player("player", self.maze.entry)
+        self.enemy = Enemy("enemy", self.maze.m_exit, self.player)
         self.screen = screen
         self.run = False
 
     def update(self) -> None:
         self._update_player()
+        self._update_enemy()
 
     def init(self):
         self.maze.add_entity(self.player)
+        self.maze.add_entity(self.enemy)
 
     def _get_input(self) -> int:
         self.screen.timeout(50)
@@ -36,12 +49,21 @@ class VideoGame:
         self.player.half_y = 0
         self.run = False
 
+    def _update_enemy(self) -> None:
+        self.enemy.frame -= 1
+        if self.enemy.frame < 1:
+            path = self.enemy.find_path(self.maze, self.enemy.pos)
+            if len(path) > 2:
+                self.enemy.pos = path[1]
+            self.enemy.frame = 5
+
     def _update_player(self) -> None:
         x, y = self.player.pos
         if self.player.half_x or self.player.half_y:
             self.player.half_x = 0
             self.player.half_y = 0
         if (x, y) == self.maze.m_exit:
+            self.screen.timeout(100)
             self._exit_game()
             return
 

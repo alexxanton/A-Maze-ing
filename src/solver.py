@@ -19,66 +19,64 @@ class Node:
         return path
 
 
-def solve_maze(maze: Maze, draw = None) -> List[Tuple[int, int]]:
-    def get_entity(name: str) -> MazeEntity | None:
-        return next((e for e in maze.entities if e.name == name), None)
+class PathFind:
+    def __init__(self, target: MazeEntity, **kwargs) -> None:
+        self.target = target
+        super().__init__(**kwargs)
 
-    def get_neighbors(node: Node) -> List[Node]:
-        nbs = []
-        x, y = node.pos
+    def find_path(self, maze: Maze, start_from: Tuple[int, int], draw = None) -> List[Tuple[int, int]]:
+        def get_neighbors(node: Node) -> List[Node]:
+            nbs = []
+            x, y = node.pos
 
-        if (
-            x + 1 < maze.width and not grid[y][x + 1] & VISITED
-            and not grid[y][x + 1] & Direction.WEST
-        ):
-            nbs.append(Node((x + 1, y), node))
-        if (
-            x > 0 and not grid[y][x - 1] & VISITED
-            and not grid[y][x - 1] & Direction.EAST
-        ):
-            nbs.append(Node((x - 1, y), node))
-        if (
-            y + 1 < maze.height and not grid[y + 1][x] & VISITED
-            and not grid[y + 1][x] & Direction.NORTH
-        ):
-            nbs.append(Node((x, y + 1), node))
-        if (
-            y > 0 and not grid[y - 1][x] & VISITED
-            and not grid[y - 1][x] & Direction.SOUTH
-        ):
-            nbs.append(Node((x, y - 1), node))
-        return nbs
+            if (
+                x + 1 < maze.width and not grid[y][x + 1] & VISITED
+                and not grid[y][x + 1] & Direction.WEST
+            ):
+                nbs.append(Node((x + 1, y), node))
+            if (
+                x > 0 and not grid[y][x - 1] & VISITED
+                and not grid[y][x - 1] & Direction.EAST
+            ):
+                nbs.append(Node((x - 1, y), node))
+            if (
+                y + 1 < maze.height and not grid[y + 1][x] & VISITED
+                and not grid[y + 1][x] & Direction.NORTH
+            ):
+                nbs.append(Node((x, y + 1), node))
+            if (
+                y > 0 and not grid[y - 1][x] & VISITED
+                and not grid[y - 1][x] & Direction.SOUTH
+            ):
+                nbs.append(Node((x, y - 1), node))
+            return nbs
+        VISITED = 0x80
+        nodes: List[Node] = []
 
-    VISITED = 0x80
-    nodes: List[Node] = []
+        if not start_from or not self.target:
+            raise ValueError("Must provide a start position and a target")
 
-    entry = get_entity("entry")
-    m_exit = get_entity("exit")
+        start = Node(start_from)
+        end = self.target.pos
+        nodes.append(start)
 
-    if not entry or not m_exit:
-        raise ValueError("Must provide an entry and an exit")
+        grid: List[List[int]] = deepcopy(maze.grid)
+        while nodes:
+            node = nodes.pop(0)
+            x, y = node.pos
 
-    start = Node(entry.pos)
-    end = m_exit.pos
-    nodes.append(start)
+            grid[y][x] |= VISITED
 
-    grid = deepcopy(maze.grid)
-    while nodes:
-        node = nodes.pop(0)
-        x, y = node.pos
+            if node.pos == end:
+                return node.get_path()
 
-        grid[y][x] |= VISITED
+            nbs = get_neighbors(node)
+            for nb in nbs:
+                nx, ny = nb.pos
+                nodes.append(nb)
+                grid[ny][nx] |= VISITED
 
-        if node.pos == end:
-            return node.get_path()
+            if draw:
+                draw(grid)
 
-        nbs = get_neighbors(node)
-        for nb in nbs:
-            nx, ny = nb.pos
-            nodes.append(nb)
-            grid[ny][nx] |= VISITED
-
-        if draw:
-            draw(grid)
-
-    return []
+        return []

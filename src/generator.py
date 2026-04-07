@@ -27,11 +27,12 @@ class Direction(IntFlag):
 
 
 class MazeEntity:
-    def __init__(self, name: str, pos: Tuple[int, int]) -> None:
+    def __init__(self, name: str, pos: Tuple[int, int], **kwargs) -> None:
         self.name = name
         self.pos: Tuple[int, int] = pos
         self.half_x = 0
         self.half_y = 0
+        super().__init__(**kwargs)
 
 
 class Maze:
