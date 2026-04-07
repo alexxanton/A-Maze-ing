@@ -23,14 +23,28 @@ class VideoGame:
         self.maze.add_entity(self.player)
 
     def _get_input(self) -> int:
-        self.screen.timeout(100)
+        self.screen.timeout(50)
         ch = self.screen.getch()
         if ch < 0:
             return 0
         return ch
 
+    def _exit_game(self) -> None:
+        self.player.pos = self.maze.entry
+        self.player.direction = Direction.NONE
+        self.player.half_x = 0
+        self.player.half_y = 0
+        self.run = False
+
     def _update_player(self) -> None:
         x, y = self.player.pos
+        if self.player.half_x or self.player.half_y:
+            self.player.half_x = 0
+            self.player.half_y = 0
+        if (x, y) == self.maze.m_exit:
+            self._exit_game()
+            return
+
         match chr(self._get_input()):
             case "a" | "A":
                 self.player.direction = Direction.WEST
@@ -41,8 +55,7 @@ class VideoGame:
             case "s" | "S":
                 self.player.direction = Direction.SOUTH
             case "q" | "Q":
-                self.player.pos = self.maze.entry
-                self.run = False
+                self._exit_game()
                 return
 
         direction = self.player.direction
@@ -58,12 +71,16 @@ class VideoGame:
         match direction:
             case Direction.WEST:
                 x -= 1
+                self.player.half_x = -1
             case Direction.EAST:
                 x += 1
+                self.player.half_x = 1
             case Direction.NORTH:
                 y -= 1
+                self.player.half_y = -1
             case Direction.SOUTH:
                 y += 1
+                self.player.half_y = 1
 
         self.player.pos = (x, y)
         self.player.direction = direction
