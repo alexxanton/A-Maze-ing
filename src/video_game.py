@@ -1,13 +1,21 @@
-from generator import Maze, MazeEntity, Direction
-from typing import Tuple
+from typing import Tuple, List
+from random import shuffle
 import curses
-from solver import PathFind
+from .generator import Maze, MazeEntity, Direction
+from .solver import PathFind
 
 
 class Player(MazeEntity):
     def __init__(self, name: str, pos: Tuple[int, int]) -> None:
         super().__init__(name, pos)
         self.direction = Direction.NONE
+
+
+class Coin(MazeEntity):
+    def __init__(self, name: str, pos: Tuple[int, int], collide_with: MazeEntity) -> None:
+        super().__init__(name, pos)
+        self.direction = Direction.NONE
+        self.collide_with = collide_with
 
 
 class Enemy(MazeEntity, PathFind):
@@ -26,14 +34,36 @@ class VideoGame:
         self.enemy = Enemy("enemy", self.maze.m_exit, self.player)
         self.screen = screen
         self.run = False
+        self.coins: List[Coin] = []
+
+    def init(self):
+        self.maze.add_entity(self.player)
+        for i, coord in enumerate(self._get_valid_coords()):
+            coin = Coin(f"coin{i}", coord, self.player)
+            self.coins.append(coin)
+            self.maze.add_entity(coin)
+        self.maze.add_entity(self.enemy)
 
     def update(self) -> None:
         self._update_player()
         self._update_enemy()
+        for coin in self.coins:
+            if self.player.pos == coin.pos:
+                self.coins.remove(coin)
+                self.maze.entities.remove(coin)
+                self.player.direction = Direction.NONE
+                break
 
-    def init(self):
-        self.maze.add_entity(self.player)
-        self.maze.add_entity(self.enemy)
+    def _get_valid_coords(self) -> List[Tuple[int, int]]:
+        coords = [
+            (x, y) for y in range(self.maze.height)
+            for x in range(self.maze.width)
+            if not self.maze.grid[y][x] & 0x40 and
+            not (x, y) == self.maze.entry and
+            not (x, y) == self.maze.m_exit
+        ]
+        shuffle(coords)
+        return coords[:len(coords) // 10]
 
     def _get_input(self) -> int:
         self.screen.timeout(50)
@@ -55,14 +85,14 @@ class VideoGame:
             path = self.enemy.find_path(self.maze, self.enemy.pos)
             if len(path) > 2:
                 self.enemy.pos = path[1]
-            self.enemy.frame = 5
+            self.enemy.frame = 10
 
     def _update_player(self) -> None:
         x, y = self.player.pos
         if self.player.half_x or self.player.half_y:
             self.player.half_x = 0
             self.player.half_y = 0
-        if (x, y) == self.maze.m_exit:
+        if (x, y) == self.maze.m_exit and len(self.coins) == 0:
             self.screen.timeout(100)
             self._exit_game()
             return
