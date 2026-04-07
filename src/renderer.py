@@ -98,11 +98,17 @@ class MazeRenderer:
         walls, fronts, blocks, entry, m_exit, solve = self.palette
 
         screen_height, screen_width = self.screen.getmaxyx()
-        og_y , og_x= self.screen.getyx()
+        og_y, og_x = self.screen.getyx()
         for entity in entities:
             x, y = entity.pos
-            x = x * 4 + 2
-            y = y * 2 + 1
+            half_x = 2
+            half_y = 1
+            if entity.half_x:
+                half_x = 0 if entity.half_x == 1 else 4
+            if entity.half_y:
+                half_y = 0 if entity.half_y == 1 else 2
+            x = x * 4 + half_x
+            y = y * 2 + half_y
 
             if x >= screen_width - 1 or y >= screen_height - 1:
                 continue
@@ -210,7 +216,6 @@ class MazeRenderer:
 
         if entities:
             self._draw_entities(entities)
-        self.screen.refresh()
 
         if not wait:
             return
@@ -221,6 +226,7 @@ class MazeRenderer:
             self.screen.timeout(0)
 
     def draw_path(self, solution: List[Tuple[int, int]]) -> None:
+        og_y , og_x= self.screen.getyx()
         self.screen.attron(curses.color_pair(Colors.PURPLE_BLOCK))
         for (x, y), (x2, y2) in zip(solution, solution[1:]):
             x_pos = x * 4 + 2
@@ -235,3 +241,4 @@ class MazeRenderer:
             self.screen.addstr(y_pos + y_dir, x_pos + (x_dir * 2), self.EMPTY)
 
         self.screen.attroff(curses.color_pair(Colors.PURPLE_BLOCK))
+        self.screen.move(og_y, og_x)

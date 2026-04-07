@@ -30,6 +30,8 @@ class MazeEntity:
     def __init__(self, name: str, pos: Tuple[int, int]) -> None:
         self.name = name
         self.pos: Tuple[int, int] = pos
+        self.half_x = 0
+        self.half_y = 0
 
 
 class Maze:

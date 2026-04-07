@@ -37,17 +37,24 @@ class InteractiveMenu:
         return last is not None and current != last
 
     def display_menu_info(self) -> None:
-        options = [
+        screen_height, screen_width = self.screen.getmaxyx()
+        menu_options = [
             "(r): Regenerate", "(t): Toggle Path", "(c): Change Color",
             "(s): See Solving", "(g): See Generation", "(f): Play Game",
             "(a): Adjust to screen", "(q): Quit"
         ]
 
-        if self.game.run:
-            screen_height = self.screen.getmaxyx()[0]
-            self.screen.clrtobot()
-            #self.screen.addstr(screen_height - 1, 0, "(wasd): Move (q): Quit")
-            return
+        game_options = [
+            "(wasd): Move", "(q): Quit"
+        ]
+
+        options = game_options if self.game.run else menu_options
+        if screen_width < 50:
+            cols = 1
+        elif screen_width < 70:
+            cols = 2
+        else:
+            cols = 3
 
         self.screen.scrollok(True)
         self.screen.addstr(f"Seed: {self.maze_gen.seed:<10}")
@@ -57,18 +64,9 @@ class InteractiveMenu:
         self.screen.addstr(f"Maze name: {maze_name:20}")
         if not self.maze.logo:
             self.screen.addstr("Warning: 42 logo doesn't fit")
-        screen_width = self.screen.getmaxyx()[1]
+
         self.screen.addnstr("\n" + ("─" * 80), screen_width)
         self.screen.addch("\n")
-
-        offset = 0
-        padding = 20
-        if screen_width < 50:
-            cols = 1
-        elif screen_width < 70:
-            cols = 2
-        else:
-            cols = 3
 
         for i in range(len(options)):
             padding = 25
@@ -78,7 +76,6 @@ class InteractiveMenu:
                 option += "\n"
             self.screen.addstr(f"{option:{padding}}")
         self.screen.clrtobot()
-        self.screen.scrollok(False)
 
     def handle_options(self) -> None:
         self.screen.timeout(-1)
@@ -130,6 +127,7 @@ class InteractiveMenu:
                 self.maze.entities,
                 wait=False
             )
+            self.screen.clrtobot()
             if self.show_path:
                 self.renderer.draw_path(self.solution)
             self.display_menu_info()
