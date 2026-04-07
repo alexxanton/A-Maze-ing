@@ -1,7 +1,7 @@
 from typing import Tuple, List
 from random import shuffle
 import curses
-from .generator import Maze, MazeEntity, Direction
+from mazegen import Maze, MazeEntity, Direction
 from .solver import PathFind
 
 
@@ -31,13 +31,14 @@ class VideoGame:
     def __init__(self, maze: Maze, screen: curses.window) -> None:
         self.maze = maze
         self.player = Player("player", self.maze.entry)
-        self.enemy = Enemy("enemy", self.maze.m_exit, self.player)
+        self.enemy = Enemy("enemy", (-1, -1), self.player)
         self.screen = screen
         self.run = False
         self.coins: List[Coin] = []
 
-    def init(self):
+    def start(self):
         self.maze.add_entity(self.player)
+        self.enemy.pos = self.maze.m_exit
         for i, coord in enumerate(self._get_valid_coords()):
             coin = Coin(f"coin{i}", coord, self.player)
             self.coins.append(coin)
@@ -73,7 +74,12 @@ class VideoGame:
         return ch
 
     def _exit_game(self) -> None:
+        self.coins.clear()
+        for entity in list(self.maze.entities):
+            if entity.name.startswith("coin"):
+                self.maze.entities.remove(entity)
         self.player.pos = self.maze.entry
+        self.enemy.pos = (-1, -1)
         self.player.direction = Direction.NONE
         self.player.half_x = 0
         self.player.half_y = 0
@@ -85,14 +91,14 @@ class VideoGame:
             path = self.enemy.find_path(self.maze, self.enemy.pos)
             if len(path) > 2:
                 self.enemy.pos = path[1]
-            self.enemy.frame = 10
+            self.enemy.frame = 5
 
     def _update_player(self) -> None:
         x, y = self.player.pos
         if self.player.half_x or self.player.half_y:
             self.player.half_x = 0
             self.player.half_y = 0
-        if (x, y) == self.maze.m_exit and len(self.coins) == 0:
+        if (x, y) == self.maze.m_exit and not self.coins:
             self.screen.timeout(100)
             self._exit_game()
             return

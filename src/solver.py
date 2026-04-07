@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Tuple
 from copy import deepcopy
-from .generator import Maze, MazeEntity, Direction
+from mazegen import Maze, MazeEntity, Direction
 
 
 class Node:

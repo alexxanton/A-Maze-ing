@@ -2,7 +2,7 @@ from dataclasses import astuple
 from random import seed, randint
 import curses
 from typing import List, Tuple
-from .generator import MazeGenerator, Maze, MazeConfig
+from mazegen import MazeGenerator, Maze, MazeConfig
 from .utils import generate_name
 from .renderer import MazeRenderer
 from .video_game import VideoGame
@@ -98,7 +98,7 @@ class InteractiveMenu:
             case "t":
                 self.show_path = not self.show_path
             case "f":
-                self.game.init()
+                self.game.start()
                 self.game.run = True
                 self.show_path = False
             case "\n" | " ":

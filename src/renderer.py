@@ -1,4 +1,4 @@
-from .generator import Direction, MazeEntity
+from mazegen import Direction, MazeEntity
 import curses
 from enum import IntEnum, auto
 from typing import List, Optional, Tuple
@@ -114,7 +114,10 @@ class MazeRenderer:
             x = x * 4 + half_x
             y = y * 2 + half_y
 
-            if x >= screen_width - 1 or y >= screen_height - 1:
+            if (
+                x < 0 or x >= screen_width - 1 or
+                y < 0 or y >= screen_height - 1
+            ):
                 continue
 
             pair = 0
