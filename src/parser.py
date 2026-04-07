@@ -94,6 +94,12 @@ class ConfigParser:
         if not settings["OUTPUT_FILE"]:
             raise ParsingError("OUTPUT_FILE must not be empty")
 
+        if (
+            "ALGORITHM" in settings and
+            settings["ALGORITHM"] not in ["prim", "backtracking"]
+        ):
+            raise ParsingError(f"ALGORITHM must be either 'prim' or 'backtracking'")
+
         if settings["ENTRY"] == settings["EXIT"]:
             raise ParsingError("ENTRY and EXIT overlap")
 
