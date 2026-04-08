@@ -198,7 +198,10 @@ class MazeGenerator:
             self._backtracking(maze.grid)
         if not self.perfect:
             self._remove_dead_ends(maze.grid)
-        maze.generate_output_file()
+        try:
+            maze.generate_output_file()
+        except PermissionError as e:
+            raise ParsingError(f"(PermissionError): {e}")
         return maze
 
     def _get_direction(self, x: int, y: int, nx: int, ny: int) -> Direction:

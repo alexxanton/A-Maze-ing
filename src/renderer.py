@@ -222,11 +222,12 @@ class MazeRenderer:
         if len(grid[:max_y]) < max_y:
             self._draw_bottom(grid[-1][:max_x])
 
-        self.screen.addstr("\n\n")
         self.screen.attroff(curses.color_pair(3))
 
         if entities:
             self._draw_entities(entities)
+        self.screen.clrtobot()
+        self.screen.addstr("\n\n")
 
         if not wait:
             return
@@ -246,8 +247,12 @@ class MazeRenderer:
             y_dir = y2 - y  # -1, 0 or 1
 
             screen_height, screen_width = self.screen.getmaxyx()
-            if x > screen_width // 4 - 2 or y > screen_height // 2 - 1:
+            if (
+                x < 0 or x > screen_width // 4 - 2 or
+                y < 0 or y > screen_height // 2 - 4
+            ):
                 continue
+
             self.screen.addstr(y_pos, x_pos, self.EMPTY)
             self.screen.addstr(y_pos + y_dir, x_pos + (x_dir * 2), self.EMPTY)
 
