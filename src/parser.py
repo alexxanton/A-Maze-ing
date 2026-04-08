@@ -1,5 +1,5 @@
 from typing import get_type_hints, get_origin, get_args
-from typing import Any, Union, Dict, List, Tuple
+from typing import Any, Union, Dict, List
 from mazegen import MazeConfig
 
 
@@ -65,7 +65,7 @@ class ConfigParser:
                 raise ParsingError(f"{b} must be either 'True' or 'False'")
             settings[b] = settings[b] == "True"
 
-        def check_out_of_bounds(name: str):
+        def check_out_of_bounds(name: str) -> None:
             if name not in settings:
                 raise ParsingError(f"Unknown coord '{name}'")
             coords = settings[name]
@@ -98,7 +98,9 @@ class ConfigParser:
             "ALGORITHM" in settings and
             settings["ALGORITHM"] not in ["prim", "backtracking"]
         ):
-            raise ParsingError(f"ALGORITHM must be either 'prim' or 'backtracking'")
+            raise ParsingError(
+                "ALGORITHM must be either 'prim' or 'backtracking'"
+            )
 
         if settings["ENTRY"] == settings["EXIT"]:
             raise ParsingError("ENTRY and EXIT overlap")

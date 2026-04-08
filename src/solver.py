@@ -20,12 +20,12 @@ class Node:
 
 
 class PathFind:
-    def __init__(self, target: MazeEntity, solver: str = "dfs", **kwargs) -> None:
+    def __init__(self, target: MazeEntity, solver: str = "bfs", **kwargs) -> None:
         self.target = target
         self.solver = solver
         super().__init__(**kwargs)
 
-    def find_path(self, maze: Maze, start_from: Tuple[int, int], draw = None) -> List[Tuple[int, int]]:
+    def find_path(self, maze: Maze, start_from: Tuple[int, int], draw=None) -> List[Tuple[int, int]]:
         def get_neighbors(node: Node) -> List[Node]:
             nbs = []
             x, y = node.pos
@@ -53,30 +53,27 @@ class PathFind:
             return nbs
 
         def get_pop_method() -> Callable[[List[Node]], Node]:
-            def pop_dfs(nodes: List[Tuple[int, int]]) -> Node:
+            def pop_dfs(nodes: List[Node]) -> Node:
                 return nodes.pop()
 
-            def pop_bfs(nodes: List[Tuple[int, int]]) -> Node:
+            def pop_bfs(nodes: List[Node]) -> Node:
                 return nodes.pop(0)
+
             if getattr(self, "solver", "bfs") == "dfs":
                 return pop_dfs
             else:
                 return pop_bfs
 
-        VISITED = 0x80
-        nodes: List[Node] = []
-
         if not start_from or not self.target:
             raise ValueError("Must provide a start position and a target")
 
+        VISITED = 0x80
         start = Node(start_from)
         end = self.target.pos
-        nodes.append(start)
-
         grid: List[List[int]] = deepcopy(maze.grid)
-
         nodes: List[Node] = [start]
         pop_method = get_pop_method()
+
         while nodes:
             node = pop_method(nodes)
             x, y = node.pos
@@ -91,6 +88,8 @@ class PathFind:
                 nx, ny = nb.pos
                 nodes.append(nb)
                 grid[ny][nx] |= VISITED
+
             if draw:
                 draw(grid)
+
         return []

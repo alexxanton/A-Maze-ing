@@ -84,7 +84,7 @@ class InteractiveMenu:
                 self.generate_new_maze(draw=True)
                 self.show_path = False
             case "s":
-                def wrap(grid):
+                def wrap(grid: List[List[int]]) -> None:
                     self.renderer.draw_maze(
                         grid, self.color, self.maze.entities, wait=True
                     )
@@ -139,11 +139,9 @@ class InteractiveMenu:
         try:
             self.maze = self.maze_gen.create()
             ex = next(e for e in self.maze.entities if e.name == "exit")
-            en = next(e for e in self.maze.entities if e.name == "entry")
             self.solver = PathFind(ex)
             self.solution = self.solver.find_path(self.maze, self.maze.entry)
             self.show_path = False
             self.game = VideoGame(self.maze, self.screen)
-            #self.game.init()
         except Exception as e:
             exit(f"Error: {e}")

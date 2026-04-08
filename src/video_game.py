@@ -13,7 +13,9 @@ class Player(MazeEntity):
 
 
 class Coin(MazeEntity):
-    def __init__(self, name: str, pos: Tuple[int, int], collide_with: MazeEntity) -> None:
+    def __init__(
+        self, name: str, pos: Tuple[int, int], collide_with: MazeEntity
+    ) -> None:
         super().__init__(name, pos)
         self.direction = Direction.NONE
         self.collide_with = collide_with
@@ -37,7 +39,7 @@ class VideoGame:
         self.run = False
         self.coins: List[Coin] = []
 
-    def start(self):
+    def start(self) -> None:
         self.maze.add_entity(self.player)
         self.enemy.pos = self.maze.m_exit
         for i, coord in enumerate(self._get_valid_coords()):
@@ -170,13 +172,13 @@ class VideoGame:
 
         cell = self.maze.grid[y][x]
 
-        def is_open(d: Direction):
-            return (cell & d) == 0
+        def is_open(cell: int, d: Direction) -> bool:
+            return (cell & int(d)) == 0
 
         if direction & left_right:
-            if is_open(Direction.NORTH) or is_open(Direction.SOUTH):
+            if is_open(cell, Direction.NORTH) or is_open(cell, Direction.SOUTH):
                 self.player.direction = Direction.NONE
 
         if direction & up_down:
-            if is_open(Direction.EAST) or is_open(Direction.WEST):
+            if is_open(cell, Direction.EAST) or is_open(cell, Direction.WEST):
                 self.player.direction = Direction.NONE

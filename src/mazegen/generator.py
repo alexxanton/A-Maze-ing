@@ -268,7 +268,6 @@ class MazeGenerator:
             direction = self._get_direction(x, y, nx, ny)
             grid[y][x] &= ~direction
             grid[ny][nx] &= ~opposite[direction]
-            #grid[y][x] |= IN
             grid[ny][nx] |= IN
 
             mark_cell(x, y)

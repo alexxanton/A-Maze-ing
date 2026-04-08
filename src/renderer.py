@@ -39,7 +39,6 @@ class CellFlags(IntEnum):
 class MazeRenderer:
     NODE = "██"
     WALL = "██"
-    #WALL = "▓▓"
     EMPTY = "  "
 
     BLUE_MAZE = (
@@ -238,7 +237,7 @@ class MazeRenderer:
             self.screen.timeout(0)
 
     def draw_path(self, solution: List[Tuple[int, int]]) -> None:
-        og_y , og_x= self.screen.getyx()
+        og_y, og_x = self.screen.getyx()
         self.screen.attron(curses.color_pair(Colors.PURPLE_BLOCK))
         for (x, y), (x2, y2) in zip(solution, solution[1:]):
             x_pos = x * 4 + 2
