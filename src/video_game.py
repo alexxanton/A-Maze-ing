@@ -110,6 +110,8 @@ class VideoGame:
                     case Direction.SOUTH:
                         self.enemy.half_y = 1
                 self.enemy.pos = new_pos
+            else:
+                self._exit_game()
             self.enemy.frame = 5
 
     def _update_player(self) -> None:
@@ -122,7 +124,6 @@ class VideoGame:
             self.player.half_y = 0
 
         if (x, y) == self.maze.m_exit and not self.coins:
-            self.screen.timeout(100)
             self._exit_game()
             return
 
