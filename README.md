@@ -80,6 +80,7 @@ The `mazegen` package is designed to be reusable. It encapsulates the maze gener
 * **Sergio**
 
   * Implementation of the backtracking algorithm
+  * Maze solving logic
 
 #### Planning & Workflow
 
