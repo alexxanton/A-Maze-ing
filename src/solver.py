@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Tuple
+from typing import List, Tuple, Callable
 from copy import deepcopy
 from mazegen import Maze, MazeEntity, Direction
 
@@ -20,8 +20,9 @@ class Node:
 
 
 class PathFind:
-    def __init__(self, target: MazeEntity, **kwargs) -> None:
+    def __init__(self, target: MazeEntity, solver: str = "dfs", **kwargs) -> None:
         self.target = target
+        self.solver = solver
         super().__init__(**kwargs)
 
     def find_path(self, maze: Maze, start_from: Tuple[int, int], draw = None) -> List[Tuple[int, int]]:
@@ -50,6 +51,18 @@ class PathFind:
             ):
                 nbs.append(Node((x, y - 1), node))
             return nbs
+
+        def get_pop_method() -> Callable[[List[Node]], Node]:
+            def pop_dfs(nodes: List[Tuple[int, int]]) -> Node:
+                return nodes.pop()
+
+            def pop_bfs(nodes: List[Tuple[int, int]]) -> Node:
+                return nodes.pop(0)
+            if getattr(self, "solver", "bfs") == "dfs":
+                return pop_dfs
+            else:
+                return pop_bfs
+
         VISITED = 0x80
         nodes: List[Node] = []
 
@@ -61,8 +74,11 @@ class PathFind:
         nodes.append(start)
 
         grid: List[List[int]] = deepcopy(maze.grid)
+
+        nodes: List[Node] = [start]
+        pop_method = get_pop_method()
         while nodes:
-            node = nodes.pop(0)
+            node = pop_method(nodes)
             x, y = node.pos
 
             grid[y][x] |= VISITED
@@ -75,8 +91,6 @@ class PathFind:
                 nx, ny = nb.pos
                 nodes.append(nb)
                 grid[ny][nx] |= VISITED
-
             if draw:
                 draw(grid)
-
         return []
