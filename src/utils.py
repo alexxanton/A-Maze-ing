@@ -1,4 +1,5 @@
 from random import shuffle, choice
+from mazegen import Direction
 
 
 def generate_name(name_seed: str) -> str:
@@ -34,3 +35,16 @@ def generate_name(name_seed: str) -> str:
                 name += middle[ch]
             last = ch
     return name.replace("''", "'").capitalize()
+
+
+def get_direction(x: int, y: int, nx: int, ny: int) -> Direction:
+    """Get the direction between two cells"""
+    if x > nx:
+        return Direction.WEST
+    if x < nx:
+        return Direction.EAST
+    if y > ny:
+        return Direction.NORTH
+    if y < ny:
+        return Direction.SOUTH
+    return Direction.NONE

@@ -3,6 +3,7 @@ from random import shuffle
 import curses
 from mazegen import Maze, MazeEntity, Direction
 from .solver import PathFind
+from .utils import get_direction
 
 
 class Player(MazeEntity):
@@ -87,37 +88,61 @@ class VideoGame:
 
     def _update_enemy(self) -> None:
         self.enemy.frame -= 1
+        if self.enemy.frame == 3:
+            self.enemy.half_x = 0
+            self.enemy.half_y = 0
+
         if self.enemy.frame < 1:
             path = self.enemy.find_path(self.maze, self.enemy.pos)
-            if len(path) > 2:
-                self.enemy.pos = path[1]
+            if len(path) >= 2:
+                new_pos = path[1]
+                x, y = self.enemy.pos
+                nx, ny = new_pos
+                match get_direction(*self.enemy.pos, *new_pos):
+                    case Direction.WEST:
+                        self.enemy.half_x = -1
+                    case Direction.EAST:
+                        self.enemy.half_x = 1
+                    case Direction.NORTH:
+                        self.enemy.half_y = -1
+                    case Direction.SOUTH:
+                        self.enemy.half_y = 1
+                self.enemy.pos = new_pos
             self.enemy.frame = 5
 
     def _update_player(self) -> None:
+        left_right = Direction.WEST | Direction.EAST
+        up_down = Direction.NORTH | Direction.SOUTH
         x, y = self.player.pos
+
         if self.player.half_x or self.player.half_y:
             self.player.half_x = 0
             self.player.half_y = 0
+
         if (x, y) == self.maze.m_exit and not self.coins:
             self.screen.timeout(100)
             self._exit_game()
             return
 
+        cell = self.maze.grid[y][x]
         match chr(self._get_input()):
             case "a" | "A":
-                self.player.direction = Direction.WEST
+                if not cell & Direction.WEST:
+                    self.player.direction = Direction.WEST
             case "d" | "D":
-                self.player.direction = Direction.EAST
+                if not cell & Direction.EAST:
+                    self.player.direction = Direction.EAST
             case "w" | "W":
-                self.player.direction = Direction.NORTH
+                if not cell & Direction.NORTH:
+                    self.player.direction = Direction.NORTH
             case "s" | "S":
-                self.player.direction = Direction.SOUTH
+                if not cell & Direction.SOUTH:
+                    self.player.direction = Direction.SOUTH
             case "q" | "Q":
                 self._exit_game()
                 return
 
         direction = self.player.direction
-        cell = self.maze.grid[y][x]
         if (
             (direction & Direction.NORTH and cell & Direction.NORTH) or
             (direction & Direction.SOUTH and cell & Direction.SOUTH) or
@@ -144,8 +169,6 @@ class VideoGame:
         self.player.direction = direction
 
         cell = self.maze.grid[y][x]
-        left_right = Direction.WEST | Direction.EAST
-        up_down = Direction.NORTH | Direction.SOUTH
 
         def is_open(d: Direction):
             return (cell & d) == 0

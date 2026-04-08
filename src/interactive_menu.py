@@ -145,5 +145,5 @@ class InteractiveMenu:
             self.show_path = False
             self.game = VideoGame(self.maze, self.screen)
             #self.game.init()
-        except ValueError as e:
+        except Exception as e:
             exit(f"Error: {e}")
