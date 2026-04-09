@@ -144,5 +144,5 @@ class ConfigParser:
             return self._read_and_parse_file(file)
         except FileNotFoundError:
             raise ParsingError(f"File {file} not found")
-        except PermissionError as e:
-            raise ParsingError(f"(PermissionError): {e}")
+        except OSError:
+            raise ParsingError(f"Error opening file, check for permissions")

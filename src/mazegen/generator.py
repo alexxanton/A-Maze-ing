@@ -37,8 +37,8 @@ class MazeEntity:
 
 class Maze:
     """Maze containing a grid and its attributes"""
-    def __init__(self, width: int, height: int,
-                 entry: Tuple[int, int], m_exit: Tuple[int, int]) -> None:
+    def __init__(self, width: int, height: int, entry: Tuple[int, int],
+                 m_exit: Tuple[int, int], output_file: str) -> None:
         self.width = width
         self.height = height
         self.entry = entry
@@ -47,6 +47,8 @@ class Maze:
         self.entities: List[MazeEntity] = []
         self.solution: List[Tuple[int, int]] = []
         self.logo: bool = True
+        self.output_file = output_file
+        self.repositioned = False
 
     def init(self) -> None:
         self.add_entity(MazeEntity("entry", self.entry))
@@ -69,7 +71,7 @@ class Maze:
                 return "S"
             return ""
 
-        with open("output.txt", "w") as file:
+        with open(self.output_file, "w") as file:
             for row in self.grid:
                 line = "".join(format(col & 0b1111, "X") for col in row)
                 file.write(line + "\n")
@@ -117,6 +119,7 @@ class MazeGenerator:
         self.seed = seed
         self.algorithm = algorithm
         self.draw_method = draw_method
+        self.repositioned = False
 
     def _place_42(self, grid: List[List[int]]) -> bool:
         WIDTH = 7
@@ -168,8 +171,10 @@ class MazeGenerator:
 
         if not entry_valid:
             self.entry = reposition(self.entry, self.m_exit)
+            self.repositioned = True
         if not exit_valid:
             self.m_exit = reposition(self.m_exit, self.entry)
+            self.repositioned = True
         return True
 
     def _get_valid_coords(
@@ -180,6 +185,9 @@ class MazeGenerator:
             for x in range(self.width)
             if not grid[y][x] & 0x40
         ]
+
+    def _destroy_walls(self) -> None:
+        pass
 
     def _remove_dead_ends(self, grid: List[List[int]]) -> None:
         opposite = {
@@ -236,10 +244,13 @@ class MazeGenerator:
         seed(self.seed)
         if self.entry == self.m_exit:
             raise ValueError("Entry and exit can't overlap")
-        maze = Maze(self.width, self.height, self.entry, self.m_exit)
+        maze = Maze(
+            self.width, self.height, self.entry, self.m_exit, self.output_file
+        )
         maze.logo = self._place_42(maze.grid)
         maze.entry = self.entry
         maze.m_exit = self.m_exit
+        maze.repositioned = self.repositioned
         maze.init()
         if self.algorithm == "prim":
             self._prim(maze.grid)

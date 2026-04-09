@@ -18,6 +18,7 @@ class InteractiveMenu:
         self.maze_gen = MazeGenerator(*astuple(self.config))
         self.color = 0
         self.show_path = False
+        self.show_menu = True
         self.run = True
 
     def _init(self) -> None:
@@ -30,7 +31,7 @@ class InteractiveMenu:
         menu_options = [
             "(r): Regenerate", "(t): Toggle Path", "(c): Change Color",
             "(s): See Solving", "(g): See Generation", "(f): Play Game",
-            "(a): Adjust to screen", "(q): Quit"
+            "(a): Adjust to screen", "(x): Hide menu", "(q): Quit"
         ]
 
         game_options = [
@@ -53,9 +54,13 @@ class InteractiveMenu:
         self.screen.addstr(f"Maze name: {maze_name:20}")
         if not self.maze.logo:
             self.screen.addstr("Warning: 42 logo doesn't fit")
+        if self.maze.repositioned:
+            self.screen.addstr("Warning: Overlapping wih a 42 block prevented")
 
         self.screen.addnstr("\n" + ("─" * 80), screen_width)
         self.screen.addch("\n")
+        if not self.show_menu:
+            return
 
         for i in range(len(options)):
             padding = 25
@@ -103,10 +108,16 @@ class InteractiveMenu:
             case "a":
                 y, x = self.screen.getmaxyx()
                 height, width = y // 2 - 5, x // 4 - 1
+                if width <= 0 or height <= 0:
+                    return
                 entry = (randrange(width), randrange(height))
+                exit_x = [x for x in range(width) if x != entry[0]]
+                exit_y = [x for x in range(height) if x != entry[1]]
+                if len(exit_x) < 2 or len(exit_y) < 2:
+                    return
                 m_exit = (
-                    choice([x for x in range(width) if x != entry[0]]),
-                    choice([x for x in range(height) if x != entry[1]])
+                    choice(exit_x),
+                    choice(exit_y)
                 )
                 self.maze_gen = MazeGenerator(
                     width, height, entry, m_exit,
@@ -114,6 +125,8 @@ class InteractiveMenu:
                     randrange(1_000_000), self.config.algorithm
                 )
                 self.generate_new_maze()
+            case "x":
+                self.show_menu = not self.show_menu
             case "\n" | " ":
                 self.show_path = False
 
