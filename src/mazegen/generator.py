@@ -45,6 +45,7 @@ class Maze:
         self.m_exit = m_exit
         self.grid = [[15] * self.width for _ in range(self.height)]
         self.entities: List[MazeEntity] = []
+        self.solution: List[Tuple[int, int]] = []
         self.logo: bool = True
 
     def init(self) -> None:
@@ -56,6 +57,18 @@ class Maze:
             self.entities.append(entity)
 
     def generate_output_file(self) -> None:
+        def get_direction(x: int, y: int, nx: int, ny: int) -> str:
+            """Get the direction between two cells"""
+            if x > nx:
+                return "W"
+            if x < nx:
+                return "E"
+            if y > ny:
+                return "N"
+            if y < ny:
+                return "S"
+            return ""
+
         with open("output.txt", "w") as file:
             for row in self.grid:
                 line = "".join(format(col & 0b1111, "X") for col in row)
@@ -63,7 +76,11 @@ class Maze:
             file.write("\n")
             file.write(",".join(map(str, self.entry)) + "\n")
             file.write(",".join(map(str, self.m_exit)) + "\n")
-            file.write("SWE")
+            path = "".join(
+                get_direction(x, y, nx, ny)
+                for (x, y), (nx, ny) in zip(self.solution, self.solution[1:])
+            )
+            file.write(path)
             file.write("\n")
 
 
@@ -106,6 +123,26 @@ class MazeGenerator:
         HEIGHT = 5
         BLOCK = 0x40
 
+
+        def reposition(
+            pos: Tuple[int, int], opp: Tuple[int, int]
+        ) -> Tuple[int, int]:
+            def is_valid(nx, ny):
+                return (
+                    0 <= nx < self.width and
+                    0 <= ny < self.height and
+                    not (grid[ny][nx] & BLOCK) and
+                    (nx, ny) != opp
+                )
+
+            x, y = pos
+            directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+            for dx, dy in directions:
+                nx, ny = x + dx, y + dy
+                if is_valid(nx, ny):
+                    return nx, ny
+
         shape = [
             (0, 0),                     (4, 0), (5, 0), (6, 0),
             (0, 1),                                     (6, 1),
@@ -118,13 +155,21 @@ class MazeGenerator:
         start_y = self.height // 2 - HEIGHT // 2
         if self.height <= HEIGHT + 1 or self.width <= WIDTH + 1:
             return False
+
+        entry_valid = True
+        exit_valid = True
         for x, y in shape:
             block_pos = (x + start_x, y + start_y)
-            if self.entry == block_pos or self.m_exit == block_pos:
-                raise ValueError(
-                    "Cant't place an entry or exit on the '42' blocks"
-                )
             grid[y + start_y][x + start_x] |= BLOCK
+            if self.entry == block_pos:
+                entry_valid = False
+            if self.m_exit == block_pos:
+                exit_valid = False
+
+        if not entry_valid:
+            self.entry = reposition(self.entry, self.m_exit)
+        if not exit_valid:
+            self.m_exit = reposition(self.m_exit, self.entry)
         return True
 
     def _get_valid_coords(
@@ -189,16 +234,19 @@ class MazeGenerator:
 
     def create(self) -> Maze:
         seed(self.seed)
+        if self.entry == self.m_exit:
+            raise ValueError("Entry and exit can't overlap")
         maze = Maze(self.width, self.height, self.entry, self.m_exit)
-        maze.init()
         maze.logo = self._place_42(maze.grid)
+        maze.entry = self.entry
+        maze.m_exit = self.m_exit
+        maze.init()
         if self.algorithm == "prim":
             self._prim(maze.grid)
         else:
             self._backtracking(maze.grid)
         if not self.perfect:
             self._remove_dead_ends(maze.grid)
-        maze.generate_output_file()
         return maze
 
     def _get_direction(self, x: int, y: int, nx: int, ny: int) -> Direction:

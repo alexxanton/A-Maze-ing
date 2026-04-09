@@ -1,5 +1,5 @@
 from dataclasses import astuple
-from random import seed, randint
+from random import seed, randint, randrange, choice
 import curses
 from typing import List, Tuple
 from mazegen import MazeGenerator, Maze, MazeConfig
@@ -16,7 +16,6 @@ class InteractiveMenu:
         self.screen = screen
         self.renderer = MazeRenderer(self.screen)
         self.maze_gen = MazeGenerator(*astuple(self.config))
-        self.solution: List[Tuple[int, int]] = []
         self.color = 0
         self.show_path = False
         self.run = True
@@ -101,6 +100,20 @@ class InteractiveMenu:
                 self.game.start()
                 self.game.run = True
                 self.show_path = False
+            case "a":
+                y, x = self.screen.getmaxyx()
+                height, width = y // 2 - 5, x // 4 - 1
+                entry = (randrange(width), randrange(height))
+                m_exit = (
+                    choice([x for x in range(width) if x != entry[0]]),
+                    choice([x for x in range(height) if x != entry[1]])
+                )
+                self.maze_gen = MazeGenerator(
+                    width, height, entry, m_exit,
+                    self.config.output_file, self.config.perfect,
+                    randrange(1_000_000), self.config.algorithm
+                )
+                self.generate_new_maze()
             case "\n" | " ":
                 self.show_path = False
 
@@ -116,7 +129,7 @@ class InteractiveMenu:
             )
             self.screen.clrtobot()
             if self.show_path:
-                self.renderer.draw_path(self.solution)
+                self.renderer.draw_path(self.maze.solution)
             self.display_menu_info()
             self.screen.refresh()
 
@@ -140,7 +153,8 @@ class InteractiveMenu:
             self.maze = self.maze_gen.create()
             ex = next(e for e in self.maze.entities if e.name == "exit")
             self.solver = PathFind(ex)
-            self.solution = self.solver.find_path(self.maze, self.maze.entry)
+            self.maze.solution = self.solver.find_path(self.maze, self.maze.entry)
+            self.maze.generate_output_file()
             self.show_path = False
             self.game = VideoGame(self.maze, self.screen)
         except Exception as e:
