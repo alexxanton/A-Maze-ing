@@ -145,4 +145,4 @@ class ConfigParser:
         except FileNotFoundError:
             raise ParsingError(f"File {file} not found")
         except OSError:
-            raise ParsingError(f"Error opening file, check for permissions")
+            raise ParsingError("Error opening file, check for permissions")

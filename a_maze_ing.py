@@ -20,4 +20,7 @@ def main(stdscr: curses.window) -> None:
 
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    try:
+        curses.wrapper(main)
+    except KeyboardInterrupt:
+        print("Program halted!")
