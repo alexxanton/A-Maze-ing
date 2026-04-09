@@ -173,6 +173,6 @@ class InteractiveMenu:
             self.show_path = False
             self.game = VideoGame(self.maze, self.screen)
         except OSError:
-            raise ParsingError("Error opening file, check for permissions")
+            raise exit("Error opening file, check for permissions")
         except Exception as e:
             exit(f"Error: {e}")
