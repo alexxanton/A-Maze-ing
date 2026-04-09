@@ -1,6 +1,6 @@
 from enum import IntFlag, auto
 from random import randrange, choice, seed, randint, shuffle
-from typing import List, Tuple, Callable, Optional
+from typing import List, Tuple, Callable, Optional, Any
 from dataclasses import dataclass
 
 
@@ -27,7 +27,7 @@ class Direction(IntFlag):
 
 
 class MazeEntity:
-    def __init__(self, name: str, pos: Tuple[int, int], **kwargs) -> None:
+    def __init__(self, name: str, pos: Tuple[int, int], **kwargs: Any) -> None:
         self.name = name
         self.pos: Tuple[int, int] = pos
         self.half_x = 0
@@ -123,11 +123,10 @@ class MazeGenerator:
         HEIGHT = 5
         BLOCK = 0x40
 
-
         def reposition(
             pos: Tuple[int, int], opp: Tuple[int, int]
         ) -> Tuple[int, int]:
-            def is_valid(nx, ny):
+            def is_valid(nx: int, ny: int) -> bool:
                 return (
                     0 <= nx < self.width and
                     0 <= ny < self.height and
@@ -142,6 +141,7 @@ class MazeGenerator:
                 nx, ny = x + dx, y + dy
                 if is_valid(nx, ny):
                     return nx, ny
+            return 0, 0
 
         shape = [
             (0, 0),                     (4, 0), (5, 0), (6, 0),

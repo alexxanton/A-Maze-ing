@@ -2,8 +2,8 @@ from typing import Tuple, List
 from random import shuffle
 import curses
 from mazegen import Maze, MazeEntity, Direction
-from .solver import PathFind
-from .utils import get_direction
+from src.solver import PathFind
+from src.utils import get_direction
 
 
 class Player(MazeEntity):
@@ -100,7 +100,7 @@ class VideoGame:
                 new_pos = path[1]
                 x, y = self.enemy.pos
                 nx, ny = new_pos
-                match get_direction(*self.enemy.pos, *new_pos):
+                match get_direction(x, y, nx, ny):
                     case Direction.WEST:
                         self.enemy.half_x = -1
                     case Direction.EAST:
@@ -177,9 +177,15 @@ class VideoGame:
             return (cell & int(d)) == 0
 
         if direction & left_right:
-            if is_open(cell, Direction.NORTH) or is_open(cell, Direction.SOUTH):
+            if (
+                is_open(cell, Direction.NORTH)
+                or is_open(cell, Direction.SOUTH)
+            ):
                 self.player.direction = Direction.NONE
 
         if direction & up_down:
-            if is_open(cell, Direction.EAST) or is_open(cell, Direction.WEST):
+            if (
+                is_open(cell, Direction.EAST)
+                or is_open(cell, Direction.WEST)
+            ):
                 self.player.direction = Direction.NONE

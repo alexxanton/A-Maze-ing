@@ -183,7 +183,10 @@ class MazeRenderer:
             self.screen.addstr(self.EMPTY * qty)
             disable_colors()
 
-        self.screen.addstr(self.WALL if cell & Direction.EAST else self.EMPTY)
+        if len(row) > 0:
+            self.screen.addstr(
+                self.WALL if cell & Direction.EAST else self.EMPTY
+            )
         self.screen.addch("\n")
 
     def _draw_bottom(self, row: List[int]) -> None:

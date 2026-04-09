@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, Any, Optional
 from copy import deepcopy
 from mazegen import Maze, MazeEntity, Direction
 
@@ -20,12 +20,19 @@ class Node:
 
 
 class PathFind:
-    def __init__(self, target: MazeEntity, solver: str = "bfs", **kwargs) -> None:
+    def __init__(
+        self, target: MazeEntity, solver: str = "bfs", **kwargs: Any
+    ) -> None:
         self.target = target
         self.solver = solver
         super().__init__(**kwargs)
 
-    def find_path(self, maze: Maze, start_from: Tuple[int, int], draw=None) -> List[Tuple[int, int]]:
+    def find_path(
+            self,
+            maze: Maze,
+            start_from: Tuple[int, int],
+            draw: Optional[Callable[[List[List[int]]], None]] = None
+    ) -> List[Tuple[int, int]]:
         def get_neighbors(node: Node) -> List[Node]:
             nbs = []
             x, y = node.pos

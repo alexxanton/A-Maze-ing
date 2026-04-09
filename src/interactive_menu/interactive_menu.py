@@ -1,12 +1,12 @@
 from dataclasses import astuple
 from random import seed, randint, randrange, choice
 import curses
-from typing import List, Tuple
+from typing import List
 from mazegen import MazeGenerator, Maze, MazeConfig
-from .utils import generate_name
-from .renderer import MazeRenderer
-from .video_game import VideoGame
-from .solver import PathFind
+from src.utils import generate_name
+from src.renderer import MazeRenderer
+from src.video_game import VideoGame
+from src.solver import PathFind
 
 
 class InteractiveMenu:
@@ -153,7 +153,9 @@ class InteractiveMenu:
             self.maze = self.maze_gen.create()
             ex = next(e for e in self.maze.entities if e.name == "exit")
             self.solver = PathFind(ex)
-            self.maze.solution = self.solver.find_path(self.maze, self.maze.entry)
+            self.maze.solution = self.solver.find_path(
+                self.maze, self.maze.entry
+            )
             self.maze.generate_output_file()
             self.show_path = False
             self.game = VideoGame(self.maze, self.screen)
