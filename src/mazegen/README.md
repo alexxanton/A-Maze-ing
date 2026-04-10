@@ -4,20 +4,19 @@
 
 `mazegen` is the **reusable** module of the project: it encapsulates maze generation logic so it can be installed with `pip` and imported in other Python projects.
 
-This repository also provides a runner (`a_maze_ing.py`) that reads `config.txt` and uses the installed `mazegen` package.
+This repository also provides a runner (`a_maze_ing.py`) that reads a configuration file (`config.txt`) and uses the installed `mazegen` package to generate a maze.
 
 ---
 
-## What this program does
+## Description
 
-- Reads a configuration file (`config.txt`)
-- Generates a maze using the selected algorithm (Prim or Backtracking)
-- Supports perfect mazes (single unique path) and imperfect mazes (loops / multiple paths)
-- Writes an output file (for evaluation)
+A-Maze-ing is a maze generation, solving, and interactive project. It contains visualizations and a Pacman-like game to test your maze running skills.
+
+This `mazegen` package contains the **maze generation** layer.
 
 ---
 
-## Running from this repository (recommended)
+## How to run (from this repository)
 
 From the repository root:
 
@@ -31,7 +30,7 @@ This will install dependencies, build/install the `mazegen` package, and run:
 python a_maze_ing.py config.txt
 ```
 
-You can also run explicitly:
+You can also run:
 
 ```bash
 make run
@@ -41,23 +40,31 @@ make run
 
 ## Configuration file (`config.txt`)
 
-Run the program by passing the configuration file:
+The project uses a configuration file (`config.txt`) to define maze generation parameters.
 
-```bash
-python a_maze_ing.py config.txt
-```
+The configuration typically includes:
 
-`config.txt` defines the maze generation parameters, including:
+- **Maze dimensions**: `width` and `height`
+- **Selected generation algorithm**: `prim` or `backtracking`
+- **Entry** coordinates (maze start)
+- **Exit** coordinates (maze end)
+- **Output file** (for automatic evaluation)
+- **Perfect** mazes (single unique solution) or **imperfect** mazes (loops / multiple paths)
+- **Seed** (optional): to reproduce the same maze generation
 
-- Maze dimensions (width and height)
-- Selected generation algorithm (Prim or backtracking)
-- Entry and exit coordinates
-- Output file path (for automatic evaluation)
-- Perfect mazes or mazes with loops and multiple paths
-- Seed (optional): to reproduce the same maze
-
-> The exact accepted keys and format depend on the parser implemented in this repository.
+> The exact key names and accepted values are defined by the parser included in this repository.
 > Use the provided `config.txt` as the reference template.
+
+### Typical workflow
+
+1. Edit `config.txt` to choose size, algorithm, and output file
+2. Run:
+
+   ```bash
+   make run
+   ```
+
+3. Check the generated output file path (as defined inside `config.txt`)
 
 ---
 
@@ -65,14 +72,20 @@ python a_maze_ing.py config.txt
 
 Two generation algorithms are implemented:
 
-- **Prim’s algorithm**: simple and structured mazes
-- **Backtracking**: more organic and “natural” looking mazes
+- **Prim’s algorithm**  
+  Chosen initially for its simplicity and ease of implementation.
+
+- **Backtracking algorithm**  
+  Added later to produce more visually appealing and organic mazes.
 
 ---
 
-## Reusability (import in another project)
+## Accessing the generated structure (library usage)
 
-The maze generation logic is packaged as `mazegen` so it can be reused independently from the interface.
+`mazegen` is designed to be reusable. It encapsulates maze generation logic and can be imported into other projects to:
+
+- Generate mazes independently of the interface
+- Plug into different rendering or game systems
 
 Minimal import example:
 
@@ -80,11 +93,30 @@ Minimal import example:
 from mazegen import MazeGenerator, MazeConfig
 ```
 
-(Exact public API depends on what is exported by `mazegen/__init__.py`.)
+> The exact public API depends on what is exported by `mazegen/__init__.py`.
 
 ---
 
-## Notes
+## Additional notes
 
-- This package focuses on maze generation; the interactive UI layer of the repository is separate.
-- The output file format is intended to be compatible with the project validator/evaluation.
+- The maze generator module grants access to the maze structure, but it is not necessarily the same format as the output file.
+- Maze solving and interactive visualization exist in the full project; `mazegen` focuses on generation.
+
+---
+
+## Resources
+
+- Maze Generation: Prim's Algorithm – Jamis Buck Blog
+- Maze Generation: Backtracking Algorithm – Jamis Buck Blog
+- Maze Solver: BFS
+- Maze Generation – Rosetta Code
+
+---
+
+## AI Usage
+
+AI tools were used during the development of this project to:
+
+- Assist with understanding and refining maze generation algorithms
+- Provide guidance on structuring the project architecture
+- Help debug and improve specific parts of the implementation
