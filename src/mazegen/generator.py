@@ -23,7 +23,7 @@ class Direction(IntFlag):
     EAST = auto()  # 0010
     SOUTH = auto()  # 0100
     WEST = auto()  # 1000
-    NONE = 0  # used for type checkers
+    NONE = 0
 
 
 class MazeEntity:
@@ -186,8 +186,62 @@ class MazeGenerator:
             if not grid[y][x] & 0x40
         ]
 
-    def _destroy_walls(self) -> None:
-        pass
+    def _destroy_walls(
+        self, grid: List[List[int]]
+    ) -> None:
+        N = Direction.NORTH
+        S = Direction.SOUTH
+        W = Direction.WEST
+        E = Direction.EAST
+
+        def check_cell(
+            x: int, y: int, accepted: Tuple[Direction, Direction]
+        ) -> bool:
+            return (
+                x >= 0 and x <= self.width - 1 and
+                y >= 0 and y <= self.height - 1 and
+                (not (grid[y][x] & 0x40)) and
+                bool(grid[y][x] & (accepted[0] | grid[y][x] & accepted[1]))
+            )
+
+        walls = [
+            (x, y) for x, y in self._get_valid_coords(grid)
+            if (grid[y][x] & 0xF).bit_count() in (2, 3)
+        ]
+        for x, y in walls:
+            cell = grid[y][x]
+            if cell & Direction.NORTH and y > 0:
+                if (
+                    (check_cell(x + 1, y, (N, W)) or cell & E) and
+                    (check_cell(x - 1, y, (N, E)) or cell & W)
+                ):
+                    grid[y][x] &= ~Direction.NORTH
+                    grid[y - 1][x] &= ~Direction.SOUTH
+                    continue
+            if cell & Direction.SOUTH and y < self.height - 1:
+                if (
+                    (check_cell(x + 1, y, (S, W)) or cell & E) and
+                    (check_cell(x - 1, y, (S, E)) or cell & W)
+                ):
+                    grid[y][x] &= ~Direction.SOUTH
+                    grid[y + 1][x] &= ~Direction.NORTH
+                    continue
+            if cell & Direction.WEST and x > 0:
+                if (
+                    (check_cell(x, y + 1, (W, N)) or cell & S) and
+                    (check_cell(x, y - 1, (W, S)) or cell & N)
+                ):
+                    grid[y][x] &= ~Direction.WEST
+                    grid[y][x - 1] &= ~Direction.EAST
+                    continue
+            if cell & Direction.EAST and x < self.width - 1:
+                if (
+                    (check_cell(x, y + 1, (E, N)) or cell & S) and
+                    (check_cell(x, y - 1, (E, S)) or cell & N)
+                ):
+                    grid[y][x] &= ~Direction.EAST
+                    grid[y][x + 1] &= ~Direction.WEST
+                    continue
 
     def _remove_dead_ends(self, grid: List[List[int]]) -> None:
         opposite = {
@@ -258,6 +312,7 @@ class MazeGenerator:
             self._backtracking(maze.grid)
         if not self.perfect:
             self._remove_dead_ends(maze.grid)
+            self._destroy_walls(maze.grid)
         return maze
 
     def _get_direction(self, x: int, y: int, nx: int, ny: int) -> Direction:
@@ -337,8 +392,9 @@ class MazeGenerator:
     def _backtracking(self, grid: List[List[int]]) -> None:
         IN = 0x10
         BLOCK = 0x40
-        stack: List[Tuple[int, int]] = [self.entry]
-        grid[self.entry[1]][self.entry[0]] |= IN
+        x, y = choice(self._get_valid_coords(grid))
+        stack: List[Tuple[int, int]] = [(x, y)]
+        grid[y][x] |= IN
         opposite = {
             Direction.NORTH: Direction.SOUTH,
             Direction.SOUTH: Direction.NORTH,
