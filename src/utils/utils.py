@@ -3,6 +3,7 @@ from mazegen import Direction
 
 
 def generate_name(name_seed: str) -> str:
+    """Generate a random name based on a seed."""
     chars = list(name_seed)
     shuffle(chars)
     name_seed = "".join(chars)
@@ -38,7 +39,7 @@ def generate_name(name_seed: str) -> str:
 
 
 def get_direction(x: int, y: int, nx: int, ny: int) -> Direction:
-    """Get the direction between two cells"""
+    """Get the direction between two cells."""
     if x > nx:
         return Direction.WEST
     if x < nx:

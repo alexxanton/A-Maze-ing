@@ -4,19 +4,22 @@ from mazegen import MazeConfig
 
 
 class ParsingError(Exception):
-    """Exception for parsing errors"""
+    """Exception for parsing errors."""
     def __init__(self, msg: str):
         super().__init__(msg)
 
 
 class ConfigParser:
+    """Parse the contents of a file for the maze configuration."""
     def __init__(self) -> None:
         self.required: List[str] = []
         self.optional: List[str] = []
         self.types: Dict[str, type] = {}
 
     def _get_settings(self) -> None:
+        """Get settingsfrom the file."""
         def is_optional(t: type) -> bool:
+            """Check if setting is optional."""
             return get_origin(t) is Union and type(None) in get_args(t)
 
         for name, t in get_type_hints(MazeConfig).items():
@@ -29,9 +32,10 @@ class ConfigParser:
                 self.required.append(name)
 
     def _process_values(self, settings: Dict[str, Any]) -> MazeConfig:
-        """Validate and store config values"""
+        """Validate and store config values."""
 
         def parse_num(num: str) -> None:
+            """Parse num from file."""
             try:
                 value = int(settings[num])
                 if value < 0:
@@ -43,7 +47,7 @@ class ConfigParser:
                 )
 
         def parse_coord(coord: str) -> None:
-            """Validate and parse coordinates"""
+            """Validate and parse coordinates."""
             parts = settings[coord].split(",")
             if len(parts) != 2:
                 raise ParsingError(
@@ -61,11 +65,13 @@ class ConfigParser:
                 )
 
         def parse_bool(b: str) -> None:
+            """Parse bool from file."""
             if settings[b] not in ["True", "False"]:
                 raise ParsingError(f"{b} must be either 'True' or 'False'")
             settings[b] = settings[b] == "True"
 
         def check_out_of_bounds(name: str) -> None:
+            """Check if coords are out of bounds."""
             if name not in settings:
                 raise ParsingError(f"Unknown coord '{name}'")
             coords = settings[name]
@@ -112,7 +118,7 @@ class ConfigParser:
         return MazeConfig(**settings)
 
     def _read_and_parse_file(self, file: str) -> MazeConfig:
-        """Attempts to read a file and parse its contents"""
+        """Attempts to read a file and parse its contents."""
         self._get_settings()
         settings = {}
         with open(file, "r") as f:
@@ -139,7 +145,7 @@ class ConfigParser:
         return self._process_values(settings)
 
     def parse(self, file: str) -> MazeConfig:
-        """Parse file to generate maze"""
+        """Parse file to generate maze."""
         try:
             return self._read_and_parse_file(file)
         except FileNotFoundError:

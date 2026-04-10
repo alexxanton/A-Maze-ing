@@ -5,11 +5,14 @@ from mazegen import Maze, MazeEntity, Direction
 
 
 class Node:
+    """Represent a node in pathfinding with position and parent link."""
     def __init__(self, pos: Tuple[int, int], prev: Node | None = None) -> None:
+        """Initialize node with position and optional previous node."""
         self.pos = pos
         self.prev = prev
 
     def get_path(self) -> List[Tuple[int, int]]:
+        """Return path from start node to current node."""
         path: List[Tuple[int, int]] = []
         node: Node | None = self
         while node is not None:
@@ -20,9 +23,11 @@ class Node:
 
 
 class PathFind:
+    """Find path in a maze using BFS or DFS."""
     def __init__(
         self, target: MazeEntity, solver: str = "bfs", **kwargs: Any
     ) -> None:
+        """Initialize solver with target entity and algorithm type."""
         self.target = target
         self.solver = solver
         super().__init__(**kwargs)
@@ -33,7 +38,9 @@ class PathFind:
             start_from: Tuple[int, int],
             draw: Optional[Callable[[List[List[int]]], None]] = None
     ) -> List[Tuple[int, int]]:
+        """Compute path from start to target, optionally visualizing steps."""
         def get_neighbors(node: Node) -> List[Node]:
+            """Return reachable neighbor nodes from current node."""
             nbs = []
             x, y = node.pos
 
@@ -60,10 +67,13 @@ class PathFind:
             return nbs
 
         def get_pop_method() -> Callable[[List[Node]], Node]:
+            """Return node retrieval method based on solver type."""
             def pop_dfs(nodes: List[Node]) -> Node:
+                """Pop last node"""
                 return nodes.pop()
 
             def pop_bfs(nodes: List[Node]) -> Node:
+                """Pop first node"""
                 return nodes.pop(0)
 
             if getattr(self, "solver", "bfs") == "dfs":

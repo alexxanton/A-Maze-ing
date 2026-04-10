@@ -6,6 +6,7 @@ from typing import List, Optional, Tuple
 
 
 class Colors(IntEnum):
+    """Colors enum for the maze."""
     BLUE_WALLS = auto()
     RED_WALLS = auto()
     GREEN_WALLS = auto()
@@ -31,6 +32,7 @@ class Colors(IntEnum):
 
 
 class CellFlags(IntEnum):
+    """Cell flags enum for cell marking."""
     IN = 0x10
     FRONTIER = 0x20
     BLOCK = 0x40
@@ -38,6 +40,7 @@ class CellFlags(IntEnum):
 
 
 class MazeRenderer:
+    """Render maze grid, entities, and paths using curses."""
     NODE = "██"
     WALL = "██"
     EMPTY = "  "
@@ -69,10 +72,12 @@ class MazeRenderer:
     variations = [BLUE_MAZE, RED_MAZE, GREEN_MAZE]
 
     def __init__(self, screen: curses.window) -> None:
+        """Initialize renderer with curses screen."""
         self.screen = screen
         self.palette: Tuple[Colors, ...]
 
     def init(self) -> None:
+        """Initialize curses color pairs for rendering."""
         if not curses.has_colors():
             return
 
@@ -99,6 +104,7 @@ class MazeRenderer:
         curses.init_pair(Colors.COIN, 3, 0)
 
     def _draw_entities(self, entities: List[MazeEntity]) -> None:
+        """Draw entities like player, exit, enemies, and coins."""
         walls, fronts, blocks, entry, m_exit, solve = self.palette
 
         screen_height, screen_width = self.screen.getmaxyx()
@@ -135,13 +141,16 @@ class MazeRenderer:
         self.screen.move(og_y, og_x)
 
     def _draw_top_line(self, row: List[int]) -> None:
+        """Draw top boundary of a maze row."""
         walls, fronts, blocks, entry, m_exit, solve = self.palette
 
         def enable_color() -> None:
+            """Enable a color."""
             if cell & CellFlags.VISITED:
                 self.screen.attron(curses.color_pair(solve))
 
         def disable_color() -> None:
+            """Disable a color."""
             self.screen.attroff(curses.color_pair(solve))
             self.screen.attron(curses.color_pair(walls))
 
@@ -158,9 +167,11 @@ class MazeRenderer:
         self.screen.addch("\n")
 
     def _draw_row(self, row: List[int]) -> None:
+        """Draw a single maze row with walls and cell states."""
         walls, fronts, blocks, entry, m_exit, solve = self.palette
 
         def enable_colors(cell: int) -> None:
+            """Enable colors"""
             if cell & CellFlags.FRONTIER and not cell & CellFlags.IN:
                 self.screen.attron(curses.color_pair(fronts))
             if cell & CellFlags.BLOCK:
@@ -169,6 +180,7 @@ class MazeRenderer:
                 self.screen.attron(curses.color_pair(solve))
 
         def disable_colors() -> None:
+            """Enable colors"""
             self.screen.attroff(curses.color_pair(fronts))
             self.screen.attroff(curses.color_pair(blocks))
             self.screen.attron(curses.color_pair(walls))
@@ -191,6 +203,7 @@ class MazeRenderer:
         self.screen.addch("\n")
 
     def _draw_bottom(self, row: List[int]) -> None:
+        """Draw bottom boundary of the maze."""
         for i in range(len(row)):
             cell = row[i]
             self.screen.addstr(self.WALL)
@@ -205,6 +218,7 @@ class MazeRenderer:
         entities: Optional[List[MazeEntity]] = None,
         wait: bool = True
     ) -> None:
+        """Render maze grid with optional entities and input pause."""
         self.palette = self.variations[color]
         walls, fronts, blocks, entry, m_exit, solve = self.palette
 
@@ -241,6 +255,7 @@ class MazeRenderer:
             self.screen.timeout(0)
 
     def draw_path(self, solution: List[Tuple[int, int]]) -> None:
+        """Draw the solution path on the rendered maze."""
         og_y, og_x = self.screen.getyx()
         self.screen.attron(curses.color_pair(Colors.PURPLE_BLOCK))
         for (x, y), (x2, y2) in zip(solution, solution[1:]):

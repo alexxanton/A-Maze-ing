@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass
 class MazeConfig:
-    """Data class for storing the maze config"""
+    """Data class for storing the maze config."""
     width: int
     height: int
     entry: Tuple[int, int]
@@ -18,7 +18,7 @@ class MazeConfig:
 
 
 class Direction(IntFlag):
-    """Enum for cardinal directions represented as bits"""
+    """Enum for cardinal directions represented as bits."""
     NORTH = auto()  # 0001
     EAST = auto()  # 0010
     SOUTH = auto()  # 0100
@@ -27,6 +27,7 @@ class Direction(IntFlag):
 
 
 class MazeEntity:
+    """Represents an entity ositioned within a maze."""
     def __init__(self, name: str, pos: Tuple[int, int], **kwargs: Any) -> None:
         self.name = name
         self.pos: Tuple[int, int] = pos
@@ -36,7 +37,7 @@ class MazeEntity:
 
 
 class Maze:
-    """Maze containing a grid and its attributes"""
+    """Maze containing a grid and its attributes."""
     def __init__(self, width: int, height: int, entry: Tuple[int, int],
                  m_exit: Tuple[int, int], output_file: str) -> None:
         self.width = width
@@ -51,16 +52,19 @@ class Maze:
         self.repositioned = False
 
     def init(self) -> None:
+        """Initialize maze entities for entry and exit points."""
         self.add_entity(MazeEntity("entry", self.entry))
         self.add_entity(MazeEntity("exit", self.m_exit))
 
     def add_entity(self, entity: MazeEntity) -> None:
+        """Add a valid MazeEntity to the maze."""
         if isinstance(entity, MazeEntity):
             self.entities.append(entity)
 
     def generate_output_file(self) -> None:
+        """Write maze grid, endpoints, and solution path to file."""
         def get_direction(x: int, y: int, nx: int, ny: int) -> str:
-            """Get the direction between two cells"""
+            """Get the direction between two cells and return a letter."""
             if x > nx:
                 return "W"
             if x < nx:
@@ -110,6 +114,7 @@ class MazeGenerator:
         algorithm: str,
         draw_method: Optional[Callable[[List[List[int]]], None]] = None
     ) -> None:
+        """Initialize generator with dimensions, algorithm, and options."""
         self.width = width
         self.height = height
         self.entry = entry
@@ -122,6 +127,7 @@ class MazeGenerator:
         self.repositioned = False
 
     def _place_42(self, grid: List[List[int]]) -> bool:
+        """Place 42 shaped block in grid and adjust entry/exit if needed."""
         WIDTH = 7
         HEIGHT = 5
         BLOCK = 0x40
@@ -129,7 +135,9 @@ class MazeGenerator:
         def reposition(
             pos: Tuple[int, int], opp: Tuple[int, int]
         ) -> Tuple[int, int]:
+            """Reposition the entry/exit if needed."""
             def is_valid(nx: int, ny: int) -> bool:
+                """Check if the new position is valid."""
                 return (
                     0 <= nx < self.width and
                     0 <= ny < self.height and
@@ -180,6 +188,7 @@ class MazeGenerator:
     def _get_valid_coords(
         self, grid: List[List[int]]
     ) -> List[Tuple[int, int]]:
+        """Return coordinates not occupied by blocked cells."""
         return [
             (x, y) for y in range(self.height)
             for x in range(self.width)
@@ -189,12 +198,14 @@ class MazeGenerator:
     def _destroy_walls(
         self, grid: List[List[int]]
     ) -> None:
+        """Remove extra walls to create more loops."""
         N = Direction.NORTH
         S = Direction.SOUTH
         W = Direction.WEST
         E = Direction.EAST
 
-        def generate_size_two_maze(grid: List[List[int]]):
+        def generate_size_two_maze(grid: List[List[int]]) -> None:
+            """Hardcoded maze for 2x2 size."""
             grid[0][0] = Direction.NORTH | Direction.WEST
             grid[0][1] = Direction.NORTH | Direction.EAST
             grid[1][0] = Direction.SOUTH | Direction.WEST
@@ -203,6 +214,7 @@ class MazeGenerator:
         def check_cell(
             x: int, y: int, accepted: Tuple[Direction, Direction]
         ) -> bool:
+            """Check if the cell contains the expected walls."""
             return (
                 x >= 0 and x <= self.width - 1 and
                 y >= 0 and y <= self.height - 1 and
@@ -257,6 +269,7 @@ class MazeGenerator:
                     continue
 
     def _remove_dead_ends(self, grid: List[List[int]]) -> None:
+        """Eliminate dead ends to create alternative paths."""
         opposite = {
             Direction.NORTH: Direction.SOUTH,
             Direction.SOUTH: Direction.NORTH,
@@ -265,6 +278,7 @@ class MazeGenerator:
         }
 
         def get_neighbor(x: int, y: int) -> Tuple[int, int] | None:
+            """Get the position of the neighbor"""
             if (
                 x >= 0 and x <= self.width - 1 and
                 y >= 0 and y <= self.height - 1 and
@@ -308,6 +322,7 @@ class MazeGenerator:
                 grid[ny][nx] &= ~opposite[direction]
 
     def create(self) -> Maze:
+        """Generate and return a maze using selected algorithm."""
         seed(self.seed)
         if self.entry == self.m_exit:
             raise ValueError("Entry and exit can't overlap")
@@ -333,7 +348,7 @@ class MazeGenerator:
         return maze
 
     def _get_direction(self, x: int, y: int, nx: int, ny: int) -> Direction:
-        """Get the direction between two cells"""
+        """Get the direction between two cells."""
         if x > nx:
             return Direction.WEST
         if x < nx:
@@ -345,6 +360,7 @@ class MazeGenerator:
         return Direction.NONE
 
     def _prim(self, grid: List[List[int]]) -> None:
+        """Generate maze using Prim's algorithm."""
         IN = 0x10
         FRONTIER = 0x20
         BLOCK = 0x40
@@ -359,6 +375,7 @@ class MazeGenerator:
         }
 
         def add_frontier(x: int, y: int) -> None:
+            """Add a frontier to the frontiers list."""
             if 0 <= x < width and 0 <= y < height and grid[y][x] == 0xF:
                 if grid[y][x] & BLOCK:
                     return
@@ -366,6 +383,7 @@ class MazeGenerator:
                 frontiers.append((x, y))
 
         def mark_cell(x: int, y: int) -> None:
+            """Mark a cell as inside the maze."""
             grid[y][x] |= IN
             add_frontier(x + 1, y)
             add_frontier(x - 1, y)
@@ -373,6 +391,7 @@ class MazeGenerator:
             add_frontier(x, y - 1)
 
         def get_neighbors(x: int, y: int) -> List[Tuple[int, int]]:
+            """Get neighbors that are already inside the maze."""
             nbs = []
             if x > 0 and grid[y][x - 1] & IN:
                 nbs.append((x - 1, y))
@@ -407,6 +426,7 @@ class MazeGenerator:
                 self.draw_method(grid)
 
     def _backtracking(self, grid: List[List[int]]) -> None:
+        """Generate maze using recursive backtracking algorithm."""
         IN = 0x10
         BLOCK = 0x40
         x, y = choice(self._get_valid_coords(grid))
@@ -442,7 +462,6 @@ class MazeGenerator:
                 grid[y][x] &= ~d
                 grid[ny][nx] &= ~od
                 grid[ny][nx] |= IN
-                # grid[ny][nx] |= 0x20
                 stack.append((nx, ny))
 
             else:

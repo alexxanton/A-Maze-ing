@@ -11,8 +11,10 @@ from src.solver import PathFind
 
 
 class InteractiveMenu:
+    """Handles interactive maze UI, rendering, input, and gameplay."""
 
     def __init__(self, config: MazeConfig, screen: curses.window) -> None:
+        """Initialize menu with configuration and curses screen."""
         self.config = config
         self.screen = screen
         self.renderer = MazeRenderer(self.screen)
@@ -23,11 +25,13 @@ class InteractiveMenu:
         self.run = True
 
     def _init(self) -> None:
+        """Set up curses environment and generate initial maze."""
         curses.curs_set(0)
         self.renderer.init()
         self.generate_new_maze()
 
     def display_menu_info(self) -> None:
+        """Render menu, controls, and options."""
         screen_height, screen_width = self.screen.getmaxyx()
         menu_options = [
             "(r): Regenerate", "(t): Toggle Path", "(c): Change Color",
@@ -73,6 +77,7 @@ class InteractiveMenu:
         self.screen.clrtobot()
 
     def handle_options(self) -> None:
+        """Process user input and execute corresponding actions."""
         self.screen.timeout(-1)
         ch = self.screen.getch()
         if ch >= ord("A") and ch <= ord("Z"):
@@ -132,6 +137,7 @@ class InteractiveMenu:
                 self.show_path = False
 
     def start(self) -> None:
+        """Run the main loop for rendering, input handling, and gameplay."""
         self._init()
         while self.run:
             seed(self.maze_gen.seed)
@@ -155,6 +161,7 @@ class InteractiveMenu:
         curses.curs_set(1)
 
     def generate_new_maze(self, draw: bool = False) -> Maze:
+        """Create a new maze and initialize solver with optional animation."""
         def draw_wrapper(grid: List[List[int]]) -> None:
             self.renderer.draw_maze(grid, self.color)
 

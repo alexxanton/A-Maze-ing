@@ -7,31 +7,39 @@ from src.utils import get_direction
 
 
 class Player(MazeEntity):
+    """Represent the player entity with movement direction."""
     def __init__(self, name: str, pos: Tuple[int, int]) -> None:
+        """Represent the player entity with movement direction."""
         super().__init__(name, pos)
         self.direction = Direction.NONE
 
 
 class Coin(MazeEntity):
+    """Represent a collectible coin linked to a target entity."""
     def __init__(
         self, name: str, pos: Tuple[int, int], collide_with: MazeEntity
     ) -> None:
+        """Initialize coin with position and collision target."""
         super().__init__(name, pos)
         self.direction = Direction.NONE
         self.collide_with = collide_with
 
 
 class Enemy(MazeEntity, PathFind):
+    """Represent an enemy that pathfinds toward a target."""
     def __init__(
         self, name: str, pos: Tuple[int, int], target: MazeEntity
     ) -> None:
+        """Initialize enemy with position, target, and movement state."""
         super().__init__(name=name, pos=pos, target=target)
         self.direction = Direction.NONE
         self.frame = 5
 
 
 class VideoGame:
+    """Manage gameplay loop, entities, and interactions in the maze."""
     def __init__(self, maze: Maze, screen: curses.window) -> None:
+        """Initialize game with maze, player, enemy, and screen."""
         self.maze = maze
         self.player = Player("player", self.maze.entry)
         self.enemy = Enemy("enemy", (-1, -1), self.player)
@@ -40,6 +48,7 @@ class VideoGame:
         self.coins: List[Coin] = []
 
     def start(self) -> None:
+        """Spawn player, enemy, and coins into the maze."""
         self.maze.add_entity(self.player)
         self.enemy.pos = self.maze.m_exit
         for i, coord in enumerate(self._get_valid_coords()):
@@ -49,6 +58,7 @@ class VideoGame:
         self.maze.add_entity(self.enemy)
 
     def update(self) -> None:
+        """Update player, enemy, and handle coin collection."""
         self._update_player()
         self._update_enemy()
         for coin in self.coins:
@@ -59,6 +69,7 @@ class VideoGame:
                 break
 
     def _get_valid_coords(self) -> List[Tuple[int, int]]:
+        """Return shuffled valid coordinates for coin placement."""
         coords = [
             (x, y) for y in range(self.maze.height)
             for x in range(self.maze.width)
@@ -70,6 +81,7 @@ class VideoGame:
         return coords[:len(coords) // 10]
 
     def _get_input(self) -> int:
+        """Read non-blocking user input from the screen."""
         self.screen.timeout(50)
         ch = self.screen.getch()
         if ch < 0:
@@ -77,6 +89,7 @@ class VideoGame:
         return ch
 
     def _exit_game(self) -> None:
+        """Reset game state and remove dynamic entities."""
         self.coins.clear()
         for entity in list(self.maze.entities):
             if entity.name.startswith("coin"):
@@ -89,6 +102,7 @@ class VideoGame:
         self.run = False
 
     def _update_enemy(self) -> None:
+        """Update enemy movement using pathfinding toward player."""
         self.enemy.frame -= 1
         if self.enemy.frame == 3:
             self.enemy.half_x = 0
@@ -115,6 +129,7 @@ class VideoGame:
             self.enemy.frame = 5
 
     def _update_player(self) -> None:
+        """Handle player input, movement, and win/exit conditions."""
         left_right = Direction.WEST | Direction.EAST
         up_down = Direction.NORTH | Direction.SOUTH
         x, y = self.player.pos
@@ -174,6 +189,7 @@ class VideoGame:
         cell = self.maze.grid[y][x]
 
         def is_open(cell: int, d: Direction) -> bool:
+            """Check if the wall is open."""
             return (cell & int(d)) == 0
 
         if direction & left_right:
