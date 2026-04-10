@@ -14,7 +14,7 @@ class MazeConfig:
     output_file: str
     perfect: bool
     seed: Optional[int] = randint(0, 1_000_000)
-    algorithm: Optional[str] = "prim"
+    algorithm: Optional[str] = "backtracking"
 
 
 class Direction(IntFlag):
@@ -194,6 +194,12 @@ class MazeGenerator:
         W = Direction.WEST
         E = Direction.EAST
 
+        def generate_size_two_maze(grid: List[List[int]]):
+            grid[0][0] = Direction.NORTH | Direction.WEST
+            grid[0][1] = Direction.NORTH | Direction.EAST
+            grid[1][0] = Direction.SOUTH | Direction.WEST
+            grid[1][1] = Direction.SOUTH | Direction.EAST
+
         def check_cell(
             x: int, y: int, accepted: Tuple[Direction, Direction]
         ) -> bool:
@@ -203,6 +209,9 @@ class MazeGenerator:
                 (not (grid[y][x] & 0x40)) and
                 bool(grid[y][x] & (accepted[0] | grid[y][x] & accepted[1]))
             )
+
+        if self.width == 2 and self.height == 2:
+            generate_size_two_maze(grid)
 
         walls = [
             (x, y) for x, y in self._get_valid_coords(grid)
@@ -310,13 +319,17 @@ class MazeGenerator:
         maze.m_exit = self.m_exit
         maze.repositioned = self.repositioned
         maze.init()
-        if self.algorithm == "prim":
+        if (
+            self.algorithm == "prim" and
+            not (self.width < 5 or self.height < 5)
+        ):
             self._prim(maze.grid)
         else:
             self._backtracking(maze.grid)
         if not self.perfect:
             self._remove_dead_ends(maze.grid)
-            self._destroy_walls(maze.grid)
+            if self.width < 10 or self.height < 10:
+                self._destroy_walls(maze.grid)
         return maze
 
     def _get_direction(self, x: int, y: int, nx: int, ny: int) -> Direction:
