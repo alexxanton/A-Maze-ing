@@ -1,3 +1,4 @@
+import sys
 from dataclasses import astuple
 from random import seed, randint, randrange, choice
 import curses
@@ -173,6 +174,6 @@ class InteractiveMenu:
             self.show_path = False
             self.game = VideoGame(self.maze, self.screen)
         except OSError:
-            raise exit("Error opening file, check for permissions")
+            sys.exit("Error opening file, check for permissions")
         except Exception as e:
-            exit(f"Error: {e}")
+            sys.exit(f"Error: {e}")

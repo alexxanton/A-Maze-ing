@@ -1,3 +1,4 @@
+import sys
 from mazegen import Direction, MazeEntity
 import curses
 from enum import IntEnum, auto
@@ -235,7 +236,7 @@ class MazeRenderer:
             return
         ch = self.screen.getch()
         if ch == ord("q"):
-            exit()
+            sys.exit()
         elif ch == ord("\n") or ch == ord(" "):
             self.screen.timeout(0)
 
