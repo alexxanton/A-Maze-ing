@@ -213,7 +213,8 @@ class MazeGenerator:
             if cell & Direction.NORTH and y > 0:
                 if (
                     (check_cell(x + 1, y, (N, W)) or cell & E) and
-                    (check_cell(x - 1, y, (N, E)) or cell & W)
+                    (check_cell(x - 1, y, (N, E)) or cell & W) and
+                    not (grid[y - 1][x] & 0x40)
                 ):
                     grid[y][x] &= ~Direction.NORTH
                     grid[y - 1][x] &= ~Direction.SOUTH
@@ -221,7 +222,8 @@ class MazeGenerator:
             if cell & Direction.SOUTH and y < self.height - 1:
                 if (
                     (check_cell(x + 1, y, (S, W)) or cell & E) and
-                    (check_cell(x - 1, y, (S, E)) or cell & W)
+                    (check_cell(x - 1, y, (S, E)) or cell & W) and
+                    not (grid[y + 1][x] & 0x40)
                 ):
                     grid[y][x] &= ~Direction.SOUTH
                     grid[y + 1][x] &= ~Direction.NORTH
@@ -229,7 +231,8 @@ class MazeGenerator:
             if cell & Direction.WEST and x > 0:
                 if (
                     (check_cell(x, y + 1, (W, N)) or cell & S) and
-                    (check_cell(x, y - 1, (W, S)) or cell & N)
+                    (check_cell(x, y - 1, (W, S)) or cell & N) and
+                    not (grid[y][x - 1] & 0x40)
                 ):
                     grid[y][x] &= ~Direction.WEST
                     grid[y][x - 1] &= ~Direction.EAST
@@ -237,7 +240,8 @@ class MazeGenerator:
             if cell & Direction.EAST and x < self.width - 1:
                 if (
                     (check_cell(x, y + 1, (E, N)) or cell & S) and
-                    (check_cell(x, y - 1, (E, S)) or cell & N)
+                    (check_cell(x, y - 1, (E, S)) or cell & N) and
+                    not (grid[y][x + 1] & 0x40)
                 ):
                     grid[y][x] &= ~Direction.EAST
                     grid[y][x + 1] &= ~Direction.WEST
