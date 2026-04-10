@@ -23,7 +23,7 @@ $(INSTALL): requirements.txt $(PACKAGE)
 	$(VENV_BIN)/pip install $(PACKAGE)
 	@touch $(INSTALL)
 
-run: venv $(INSTALL)
+run: install
 	@echo "Running the project..."
 	$(VENV_BIN)/python $(MAIN) config.txt
 
@@ -35,7 +35,7 @@ venv:
 
 install: venv $(INSTALL)
 
-debug: venv
+debug: install
 	@echo "Running in debug mode..."
 	$(VENV_BIN)/python -m pdb $(MAIN)
 
@@ -51,7 +51,7 @@ fclean: clean
 	find . -type d -name ".venv" -exec rm -r {} +
 	find . -type f -name "mazegen-*" -delete
 
-lint: venv
+lint: install
 	@echo "Running lint checks..."
 	-$(VENV_BIN)/flake8 $(MAIN) src
 	$(VENV_BIN)/mypy $(MAIN) src --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
