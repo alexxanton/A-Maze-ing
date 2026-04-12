@@ -204,13 +204,6 @@ class MazeGenerator:
         W = Direction.WEST
         E = Direction.EAST
 
-        def generate_size_two_maze(grid: List[List[int]]) -> None:
-            """Hardcoded maze for 2x2 size."""
-            grid[0][0] = Direction.NORTH | Direction.WEST
-            grid[0][1] = Direction.NORTH | Direction.EAST
-            grid[1][0] = Direction.SOUTH | Direction.WEST
-            grid[1][1] = Direction.SOUTH | Direction.EAST
-
         def check_cell(
             x: int, y: int, accepted: Tuple[Direction, Direction]
         ) -> bool:
@@ -221,9 +214,6 @@ class MazeGenerator:
                 (not (grid[y][x] & 0x40)) and
                 bool(grid[y][x] & (accepted[0] | grid[y][x] & accepted[1]))
             )
-
-        if self.width == 2 and self.height == 2:
-            generate_size_two_maze(grid)
 
         walls = [
             (x, y) for x, y in self._get_valid_coords(grid)
@@ -322,6 +312,13 @@ class MazeGenerator:
                 grid[ny][nx] &= ~opposite[direction]
 
     def create(self) -> Maze:
+        def generate_size_two_maze(grid: List[List[int]]) -> None:
+            """Hardcoded maze for 2x2 size."""
+            grid[0][0] = Direction.NORTH | Direction.WEST
+            grid[0][1] = Direction.NORTH | Direction.EAST
+            grid[1][0] = Direction.SOUTH | Direction.WEST
+            grid[1][1] = Direction.SOUTH | Direction.EAST
+
         """Generate and return a maze using selected algorithm."""
         seed(self.seed)
         if self.entry == self.m_exit:
@@ -334,6 +331,8 @@ class MazeGenerator:
         maze.m_exit = self.m_exit
         maze.repositioned = self.repositioned
         maze.init()
+        if self.width <= 2 or self.height <= 2:
+            generate_size_two_maze(maze.grid)
         if (
             self.algorithm == "prim" and
             not (self.width < 5 or self.height < 5)

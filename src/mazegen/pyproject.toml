@@ -6,12 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "mazegen"
 version = "1.0.0"
 description = "Maze Generator"
-readme = { file = "src/mazegen/README.md", content-type = "text/markdown" } 
+readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Alex Anton" }, { name = "Sergio Lopez" }]
-
-[tool.setuptools]
-include-package-data = true
-
-[tool.setuptools.packages.find]
-where = ["src"]
